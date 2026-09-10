@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { createRef } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { DrillInput } from './DrillInput'
 
 describe('DrillInput', () => {
@@ -36,5 +36,45 @@ describe('DrillInput', () => {
     const ref = createRef<HTMLInputElement>()
     render(<DrillInput onValue={() => {}} inputRef={ref} />)
     expect(ref.current).toBeInstanceOf(HTMLInputElement)
+  })
+
+  describe('deferred re-read after compositionend', () => {
+    beforeEach(() => {
+      vi.useFakeTimers()
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('re-reports the same value once the timer fires', () => {
+      const onValue = vi.fn()
+      const ref = createRef<HTMLInputElement>()
+      render(<DrillInput onValue={onValue} inputRef={ref} />)
+      const input = screen.getByRole('textbox') as HTMLInputElement
+      input.value = '的一'
+      fireEvent.compositionEnd(input)
+      expect(onValue).toHaveBeenCalledTimes(1)
+
+      vi.advanceTimersByTime(0)
+
+      expect(onValue).toHaveBeenCalledTimes(2)
+      expect(onValue).toHaveBeenLastCalledWith('的一', false)
+    })
+
+    it('skips the deferred re-report when a new composition starts first', () => {
+      const onValue = vi.fn()
+      const ref = createRef<HTMLInputElement>()
+      render(<DrillInput onValue={onValue} inputRef={ref} />)
+      const input = screen.getByRole('textbox') as HTMLInputElement
+      input.value = '的一'
+      fireEvent.compositionEnd(input)
+      expect(onValue).toHaveBeenCalledTimes(1)
+
+      fireEvent.compositionStart(input)
+      vi.advanceTimersByTime(0)
+
+      expect(onValue).toHaveBeenCalledTimes(1)
+    })
   })
 })
