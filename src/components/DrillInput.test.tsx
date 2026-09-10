@@ -32,6 +32,37 @@ describe('DrillInput', () => {
     expect(onValue).toHaveBeenLastCalledWith('的一', false)
   })
 
+  it('strips non-Han text the IME committed and reports the cleaned value', () => {
+    const onValue = vi.fn()
+    const ref = createRef<HTMLInputElement>()
+    render(<DrillInput onValue={onValue} inputRef={ref} />)
+    const input = screen.getByRole('textbox') as HTMLInputElement
+    input.value = '的mgmmju'
+    fireEvent.compositionEnd(input)
+    expect(onValue).toHaveBeenLastCalledWith('的', false)
+    expect(input.value).toBe('的')
+  })
+
+  it('strips stray Latin letters typed outside a composition', () => {
+    const onValue = vi.fn()
+    const ref = createRef<HTMLInputElement>()
+    render(<DrillInput onValue={onValue} inputRef={ref} />)
+    const input = screen.getByRole('textbox') as HTMLInputElement
+    fireEvent.input(input, { target: { value: '的a' }, isComposing: false })
+    expect(onValue).toHaveBeenLastCalledWith('的', false)
+    expect(input.value).toBe('的')
+  })
+
+  it('leaves the field alone while a composition is in progress', () => {
+    const onValue = vi.fn()
+    const ref = createRef<HTMLInputElement>()
+    render(<DrillInput onValue={onValue} inputRef={ref} />)
+    const input = screen.getByRole('textbox') as HTMLInputElement
+    fireEvent.compositionStart(input)
+    fireEvent.input(input, { target: { value: '的mg' }, isComposing: true })
+    expect(input.value).toBe('的mg')
+  })
+
   it('exposes the element through inputRef', () => {
     const ref = createRef<HTMLInputElement>()
     render(<DrillInput onValue={() => {}} inputRef={ref} />)

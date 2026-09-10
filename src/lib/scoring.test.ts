@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   accuracy,
+  hanCharacters,
   charsPerMinute,
   formatTime,
   missedCharacters,
@@ -130,5 +131,19 @@ describe('formatTime', () => {
 
   it('clamps negative input to zero', () => {
     expect(formatTime(-500)).toBe('0:00.0')
+  })
+})
+
+describe('hanCharacters', () => {
+  it('keeps only Han characters', () => {
+    expect(hanCharacters('的mgmmju一')).toBe('的一')
+  })
+
+  it('returns an empty string when nothing is Han', () => {
+    expect(hanCharacters('abc ')).toBe('')
+  })
+
+  it('keeps the input unchanged when it is all Han', () => {
+    expect(hanCharacters('倉頡')).toBe('倉頡')
   })
 })

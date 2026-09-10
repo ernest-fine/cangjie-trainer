@@ -37,7 +37,7 @@ describe('useDrill', () => {
 
   it('tracks wrong characters and never decrements the tally', () => {
     const { result } = renderHook(() => useDrill(order))
-    act(() => result.current.onInput('X', false))
+    act(() => result.current.onInput('錯', false))
     expect(result.current.wrongTally).toBe(1)
     expect(result.current.states[0]).toBe('wrong')
     act(() => result.current.onInput('', false))
@@ -45,6 +45,19 @@ describe('useDrill', () => {
     expect(result.current.wrongTally).toBe(1)
     expect(result.current.wrongPositions).toEqual([0])
     expect(result.current.states[0]).toBe('correct')
+  })
+
+  it('ignores non-Han characters the IME commits for an invalid code', () => {
+    const { result } = renderHook(() => useDrill(order))
+    const almostDone = order.slice(0, 99).join('')
+    act(() => result.current.onInput(almostDone, false))
+    act(() => result.current.onInput(almostDone + 'mgmmju', false))
+    expect([...result.current.typed]).toHaveLength(99)
+    expect(result.current.wrongTally).toBe(0)
+    expect(result.current.isDone).toBe(false)
+    act(() => result.current.onInput(almostDone + 'mgmmju' + order[99], false))
+    expect(result.current.isDone).toBe(true)
+    expect(result.current.wrongTally).toBe(0)
   })
 
   it('caps typed input at the set length', () => {
@@ -72,7 +85,7 @@ describe('useDrill', () => {
 
   it('restart clears the run and keeps the order', () => {
     const { result } = renderHook(() => useDrill(order))
-    act(() => result.current.onInput('X', false))
+    act(() => result.current.onInput('錯', false))
     const before = result.current.runId
     act(() => result.current.restart())
     expect(result.current.typed).toBe('')
@@ -84,7 +97,7 @@ describe('useDrill', () => {
 
   it('scramble clears the run and changes the order', () => {
     const { result } = renderHook(() => useDrill(order, { rng: () => 0.5 }))
-    act(() => result.current.onInput('X', false))
+    act(() => result.current.onInput('錯', false))
     act(() => result.current.scramble())
     expect(result.current.typed).toBe('')
     expect(result.current.wrongTally).toBe(0)

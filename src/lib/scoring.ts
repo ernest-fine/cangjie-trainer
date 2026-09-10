@@ -2,6 +2,16 @@ import type { PositionState } from './types'
 
 const DEFAULT_TOTAL = 100
 
+/**
+ * Keeps only Han characters. IMEs commit non-Han text in a few situations
+ * (macOS Cangjie commits the raw key letters when a code is invalid, and a
+ * keyboard left in ASCII mode types letters); none of it can ever match a
+ * target, so it is not scored.
+ */
+export function hanCharacters(value: string): string {
+  return [...value].filter((ch) => /\p{Script=Han}/u.test(ch)).join('')
+}
+
 export function positionStates(target: string[], typed: string): PositionState[] {
   const chars = [...typed]
   return target.map((ch, i) => {

@@ -22,7 +22,7 @@ describe('Drill', () => {
   it('calls onFinish with the result when a timed run completes', () => {
     const onFinish = vi.fn()
     render(<Drill setIndex={0} mode="timed" order={order} onFinish={onFinish} onBack={() => {}} />)
-    typeCommitted('X' + order.slice(1).join(''))
+    typeCommitted('錯' + order.slice(1).join(''))
     expect(onFinish).toHaveBeenCalledTimes(1)
     const result = onFinish.mock.calls[0][0]
     expect(result.setIndex).toBe(0)
@@ -30,6 +30,20 @@ describe('Drill', () => {
     expect(result.missed).toEqual([order[0]])
     expect(result.order).toEqual(order)
     expect(result.elapsedMs).toBeGreaterThanOrEqual(0)
+  })
+
+  it('does not end the run when the IME commits raw code letters for the last character', () => {
+    const onFinish = vi.fn()
+    render(<Drill setIndex={0} mode="timed" order={order} onFinish={onFinish} onBack={() => {}} />)
+    const almostDone = order.slice(0, 99).join('')
+    typeCommitted(almostDone)
+    // Safari + macOS Cangjie: a six-key code is invalid, so space commits the letters.
+    typeCommitted(almostDone + 'mgmmju')
+    expect(onFinish).not.toHaveBeenCalled()
+    typeCommitted(almostDone + order[99])
+    expect(onFinish).toHaveBeenCalledTimes(1)
+    expect(onFinish.mock.calls[0][0].wrongTally).toBe(0)
+    expect(onFinish.mock.calls[0][0].missed).toEqual([])
   })
 
   it('does not call onFinish in free mode, shows done instead', () => {
@@ -47,7 +61,7 @@ describe('Drill', () => {
 
   it('restart clears the input', async () => {
     render(<Drill setIndex={0} mode="free" order={order} onFinish={() => {}} onBack={() => {}} />)
-    typeCommitted('X')
+    typeCommitted('錯')
     await userEvent.click(screen.getByRole('button', { name: 'Restart' }))
     expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('')
   })
@@ -65,7 +79,7 @@ describe('Drill', () => {
     render(<Drill setIndex={0} mode="timed" order={order} onFinish={onFinish} onBack={() => {}} now={() => t} />)
     typeCommitted(order.slice(0, 10).join(''))
     t += 2000
-    typeCommitted(order.slice(0, 10).join('') + 'X')
+    typeCommitted(order.slice(0, 10).join('') + '錯')
     typeCommitted(order.slice(0, 10).join(''))
     typeCommitted(order.slice(0, 11).join(''))
     t += 3000

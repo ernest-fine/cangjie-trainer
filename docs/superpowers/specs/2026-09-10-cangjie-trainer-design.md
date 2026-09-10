@@ -40,7 +40,8 @@ Both modes use the same drill screen.
 - A separate tally counts every wrong character ever committed during the run. Fixing a character does not reduce this tally. Accuracy is computed from this tally.
 - **Scramble** replaces the character order with a shuffled copy of the set and restarts the run: typed value cleared, tally cleared, clock cleared.
 - **Restart** clears the run and keeps the current order.
-- A one-line hint above the input reads "Switch your keyboard to Cangjie" so a learner typing Latin letters understands why every character is wrong.
+- Only Han characters are scored. Non-Han text that reaches the field as committed input is removed from the field and never counted or advanced over. This covers macOS Cangjie committing the raw key letters when a code is invalid (for example a sixth key on a five-key code), and a keyboard left in ASCII mode.
+- A one-line hint above the input reads "Switch your keyboard to Cangjie" so a learner whose keystrokes produce no progress understands why.
 - Losing focus does not pause or stop the clock.
 
 ### Timing and scoring
@@ -108,7 +109,7 @@ Single-page Vite + React + TypeScript app. No router. One top-level `screen` sta
 
 - `localStorage` unavailable or throwing: storage functions catch and return empty. The app runs without memory.
 - Stored value not matching the expected shape: treated as no record, and overwritten on the next save.
-- IME not active: characters show as wrong. The hint line explains.
+- IME not active, or an invalid Cangjie code committed as letters: the letters are stripped from the field and nothing is scored. The hint line explains the first case; in the second the learner simply retypes the character.
 - Input loses focus: clock continues. Clicking the drill area refocuses.
 - No network calls exist, so there are no network errors.
 

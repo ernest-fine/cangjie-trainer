@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import { newlyWrongPositions, positionStates, shuffle } from '../lib/scoring'
+import { hanCharacters, newlyWrongPositions, positionStates, shuffle } from '../lib/scoring'
 import type { PositionState } from '../lib/types'
 
 export interface UseDrillOptions {
@@ -40,7 +40,7 @@ export function useDrill(initialOrder: string[], options: UseDrillOptions = {}):
       const t = now()
       setState((prev) => {
         if (prev.endedAt !== null) return prev
-        const capped = [...value].slice(0, prev.order.length).join('')
+        const capped = [...hanCharacters(value)].slice(0, prev.order.length).join('')
         const wrong = newlyWrongPositions(prev.typed, capped, prev.order)
         const startedAt = prev.startedAt ?? (capped.length > 0 ? t : null)
         const done = [...capped].length === prev.order.length
