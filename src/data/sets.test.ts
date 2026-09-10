@@ -23,4 +23,16 @@ describe('character sets', () => {
     expect(SETS[1][0]).toBe([...CHARACTERS][100])
     expect(SETS.flat().join('')).toBe(CHARACTERS)
   })
+
+  it('contains common characters beyond rank 500', () => {
+    for (const ch of '般標素適專參注溫餘') {
+      expect(CHARACTERS).toContain(ch)
+    }
+  })
+
+  it('does not contain rare characters', () => {
+    for (const ch of '硯壺蟻嶼蝶蜂莓醋襪嗽') {
+      expect(CHARACTERS).not.toContain(ch)
+    }
+  })
 })
