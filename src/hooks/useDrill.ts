@@ -30,18 +30,18 @@ function freshState(order: string[], runId: number): DrillState {
 }
 
 export function useDrill(initialOrder: string[], options: UseDrillOptions = {}): Drill {
-  const now = options.now ?? (() => performance.now())
-  const rng = options.rng ?? Math.random
+  const now = useMemo(() => options.now ?? (() => performance.now()), [options.now])
+  const rng = useMemo(() => options.rng ?? Math.random, [options.rng])
   const [state, setState] = useState<DrillState>(() => freshState(initialOrder, 0))
 
   const onInput = useCallback(
     (value: string, isComposing: boolean) => {
       if (isComposing) return
+      const t = now()
       setState((prev) => {
         if (prev.endedAt !== null) return prev
         const capped = [...value].slice(0, prev.order.length).join('')
         const wrong = newlyWrongPositions(prev.typed, capped, prev.order)
-        const t = now()
         const startedAt = prev.startedAt ?? (capped.length > 0 ? t : null)
         const done = [...capped].length === prev.order.length
         return {
