@@ -16,16 +16,31 @@ describe('character sets', () => {
     }
   })
 
+  it('contains only Basic Multilingual Plane characters', () => {
+    for (const ch of CHARACTERS) {
+      expect(ch.codePointAt(0)!).toBeLessThanOrEqual(0xffff)
+    }
+  })
+
   it('splits into 10 sets of 100 in order', () => {
     expect(SETS).toHaveLength(SET_COUNT)
     for (const set of SETS) expect(set).toHaveLength(SET_SIZE)
-    expect(SETS[0][0]).toBe('的')
     expect(SETS[1][0]).toBe([...CHARACTERS][100])
     expect(SETS.flat().join('')).toBe(CHARACTERS)
   })
 
-  it('contains common characters that a frequency list must include', () => {
+  it('ranks the Cantonese copula first', () => {
+    expect(SETS[0][0]).toBe('係')
+  })
+
+  it('contains common written characters that a frequency list must include', () => {
     for (const ch of '般標素適專參注溫餘') {
+      expect(CHARACTERS).toContain(ch)
+    }
+  })
+
+  it('contains the core written-Cantonese characters', () => {
+    for (const ch of '嘅唔係佢咗啲嗰喺咁哋冇嘢睇') {
       expect(CHARACTERS).toContain(ch)
     }
   })
