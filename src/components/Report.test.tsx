@@ -32,6 +32,13 @@ describe('Report', () => {
     expect(screen.getByText('New best')).toBeInTheDocument()
   })
 
+  it('shows no record yet when there is no previous best', () => {
+    render(
+      <Report result={result} isNewBest={false} previousBest={undefined} onRetry={() => {}} onRetryScrambled={() => {}} onBack={() => {}} />,
+    )
+    expect(screen.getByText('No record yet')).toBeInTheDocument()
+  })
+
   it('shows the previous best otherwise', () => {
     render(
       <Report
