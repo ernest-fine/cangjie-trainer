@@ -60,8 +60,13 @@ export function missedCharacters(target: string[], wrongPositions: Iterable<numb
   return missed
 }
 
+/**
+ * Formats a duration in milliseconds as `m:ss.t`. Tenths of a second are
+ * truncated (floored), not rounded. Negative input is clamped to 0.
+ */
 export function formatTime(ms: number): string {
-  const tenths = Math.floor(ms / 100)
+  const clamped = Math.max(0, ms)
+  const tenths = Math.floor(clamped / 100)
   const minutes = Math.floor(tenths / 600)
   const seconds = Math.floor((tenths % 600) / 10)
   const tenth = tenths % 10

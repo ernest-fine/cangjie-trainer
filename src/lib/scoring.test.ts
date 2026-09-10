@@ -127,4 +127,8 @@ describe('formatTime', () => {
     expect(formatTime(0)).toBe('0:00.0')
     expect(formatTime(599_990)).toBe('9:59.9')
   })
+
+  it('clamps negative input to zero', () => {
+    expect(formatTime(-500)).toBe('0:00.0')
+  })
 })
