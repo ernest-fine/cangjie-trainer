@@ -61,7 +61,7 @@ export function Report({ result, isNewBest, previousBest, onRetry, onRetryScramb
           {result.missed.length === 0 ? (
             <p className={styles.none}>No mistakes</p>
           ) : (
-            <ul className={styles.missed} aria-labelledby="missed-label">
+            <ul className={styles.missed} aria-labelledby="missed-label" lang="zh-Hant">
               {result.missed.map((ch) => (
                 <li key={ch} className={styles.missedGlyph}>
                   {ch}
