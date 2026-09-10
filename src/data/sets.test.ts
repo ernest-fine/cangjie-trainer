@@ -24,7 +24,7 @@ describe('character sets', () => {
     expect(SETS.flat().join('')).toBe(CHARACTERS)
   })
 
-  it('contains common characters beyond rank 500', () => {
+  it('contains common characters that a frequency list must include', () => {
     for (const ch of '般標素適專參注溫餘') {
       expect(CHARACTERS).toContain(ch)
     }

@@ -13,7 +13,6 @@ interface CharacterGridProps {
  */
 export function CharacterGrid({ order, states }: CharacterGridProps) {
   return (
-    // Decorative for assistive tech: the input below carries the accessible label.
     <div className={styles.grid} aria-hidden="true" lang="zh-Hant">
       {order.map((ch, i) => (
         <span key={i} className={styles.glyph} data-state={states[i]}>

@@ -48,6 +48,7 @@ export function DrillInput({ onValue, inputRef, disabled }: DrillInputProps) {
       spellCheck={false}
       disabled={disabled}
       placeholder="在此輸入"
+      lang="zh-Hant"
       aria-label="Type the characters shown above"
       onInput={handleInput}
       onCompositionStart={handleCompositionStart}

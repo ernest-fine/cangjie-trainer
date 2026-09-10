@@ -14,7 +14,7 @@ export function Home({ bests, onStart }: HomeProps) {
     <main className={styles.screen}>
       <header className={styles.header}>
         <h1 className={styles.title}>Cangjie Trainer</h1>
-        <p className={styles.subtitle}>倉頡練習 · Retype the most common characters with your Cangjie keyboard.</p>
+        <p className={styles.subtitle}><span lang="zh-Hant">倉頡練習</span> · Retype the most common characters with your Cangjie keyboard.</p>
       </header>
       <div className={styles.grid}>
         {SETS.map((set, i) => {
