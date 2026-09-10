@@ -92,7 +92,7 @@ function parseSpoken(dir) {
   const files = readdirSync(dir).filter((f) => !f.includes('.'))
   if (files.length < MIN_TRANSCRIPTS) fail(`expected at least ${MIN_TRANSCRIPTS} transcripts, found ${files.length}`)
   const counts = new Map()
-  const token = /^\s*(\S+?)\/([A-Za-z0-9]+)\/[^\/\n]*\/\s*$/gm
+  const token = /^\s*(\S+?)\/([A-Za-z0-9]+)\/[^/\n]*\/\s*$/gm
   for (const file of files) {
     const text = readFileSync(join(dir, file), 'utf8')
     for (const m of text.matchAll(token)) {
