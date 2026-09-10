@@ -14,10 +14,11 @@ export interface DrillProps {
   order: string[]
   onFinish(result: RunResult): void
   onBack(): void
+  now?: () => number
 }
 
-export function Drill({ setIndex, mode, order, onFinish, onBack }: DrillProps) {
-  const drill = useDrill(order)
+export function Drill({ setIndex, mode, order, onFinish, onBack, now }: DrillProps) {
+  const drill = useDrill(order, { now })
   const inputRef = useRef<HTMLInputElement | null>(null)
   const reported = useRef(false)
 

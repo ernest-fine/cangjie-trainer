@@ -58,4 +58,22 @@ describe('Drill', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Back' }))
     expect(onBack).toHaveBeenCalled()
   })
+
+  it('accumulates time and mistakes across several commits', () => {
+    let t = 1000
+    const onFinish = vi.fn()
+    render(<Drill setIndex={0} mode="timed" order={order} onFinish={onFinish} onBack={() => {}} now={() => t} />)
+    typeCommitted(order.slice(0, 10).join(''))
+    t += 2000
+    typeCommitted(order.slice(0, 10).join('') + 'X')
+    typeCommitted(order.slice(0, 10).join(''))
+    typeCommitted(order.slice(0, 11).join(''))
+    t += 3000
+    typeCommitted(order.join(''))
+    expect(onFinish).toHaveBeenCalledTimes(1)
+    const result = onFinish.mock.calls[0][0]
+    expect(result.elapsedMs).toBe(5000)
+    expect(result.wrongTally).toBe(1)
+    expect(result.missed).toEqual([order[10]])
+  })
 })
