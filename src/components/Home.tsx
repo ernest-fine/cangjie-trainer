@@ -22,9 +22,9 @@ export function Home({ bests, onStart }: HomeProps) {
           const rangeStart = i * SET_SIZE + 1
           const rangeEnd = (i + 1) * SET_SIZE
           return (
-            <article key={i} className={styles.card}>
+            <article key={i} className={styles.card} aria-labelledby={`set-${i + 1}-title`}>
               <div className={styles.cardHead}>
-                <span className={styles.setName}>Set {i + 1}</span>
+                <h2 id={`set-${i + 1}-title`} className={styles.setName}>Set {i + 1}</h2>
                 <span className={styles.range}>
                   {rangeStart} to {rangeEnd}
                 </span>

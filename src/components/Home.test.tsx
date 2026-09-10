@@ -4,6 +4,12 @@ import { describe, expect, it, vi } from 'vitest'
 import { Home } from './Home'
 
 describe('Home', () => {
+  it('gives every card an accessible name', () => {
+    render(<Home bests={{}} onStart={() => {}} />)
+    expect(screen.getByRole('article', { name: 'Set 1' })).toBeInTheDocument()
+    expect(screen.getByRole('article', { name: 'Set 10' })).toBeInTheDocument()
+  })
+
   it('renders ten set cards with rank ranges', () => {
     render(<Home bests={{}} onStart={() => {}} />)
     expect(screen.getAllByRole('article')).toHaveLength(10)
