@@ -30,12 +30,27 @@ const SET_SIZE = 100
 const SET_COUNT = 10
 const TOTAL = SET_SIZE * SET_COUNT
 
-/** Transcription variants in HKCanCor mapped to the forms people type. */
+/**
+ * Transcription conventions in HKCanCor mapped to the forms people type.
+ * The corpus spells several particles and pronouns by one fixed character
+ * per Jyutping syllable; typed Cantonese uses different characters.
+ */
 const NORMALIZE = new Map([
-  ['噉', '咁'],
-  ['囖', '囉'],
-  ['𡃉', '㗎'],
+  ['噉', '咁'], // gam2
+  ['囖', '囉'], // lo1
+  ['𡃉', '㗎'], // gaa3
+  ['哩', '呢'], // ni1, as in 哩個 → 呢個
+  ['揾', '搵'], // wan2
+  ['吖', '呀'], // aa1
+  ['喇', '啦'], // laa1
+  ['嚹', '喇'], // laa3
 ])
+
+/**
+ * Paralinguistic fillers the transcribers wrote as characters (a backchannel
+ * "haak6" and a hesitation "e6"). Nobody types them, so they are not counted.
+ */
+const EXCLUDE_SPOKEN = new Set(['喀', '誒'])
 
 const MIN_WRITTEN_CHARS = 3000
 const MIN_TRANSCRIPTS = 50
@@ -84,6 +99,7 @@ function parseSpoken(dir) {
       const [, word, pos] = m
       if (pos === 'w') continue
       for (const raw of word) {
+        if (EXCLUDE_SPOKEN.has(raw)) continue
         const ch = NORMALIZE.get(raw) ?? raw
         if (HAN.test(ch)) counts.set(ch, (counts.get(ch) ?? 0) + 1)
       }
@@ -136,8 +152,9 @@ export const SET_COUNT = ${SET_COUNT}
  *            https://humanum.arts.cuhk.edu.hk/Lexis/chifreq/
  *   Spoken:  Hong Kong Cantonese Corpus (HKCanCor), Luke & Wong (2015), CC BY 4.0,
  *            https://github.com/fcbond/hkcancor
- * Spoken transcription variants normalized before counting: 噉→咁, 囖→囉, 𡃉→㗎.
- * Characters outside the Basic Multilingual Plane are excluded.
+ * Spoken transcription conventions normalized before counting: 噉→咁, 囖→囉,
+ * 𡃉→㗎, 哩→呢, 揾→搵, 吖→呀, 喇→啦, 嚹→喇. The filler transcriptions 喀 and 誒
+ * are not counted. Characters outside the Basic Multilingual Plane are excluded.
  */
 export const CHARACTERS =
 ${lines.join('\n')}

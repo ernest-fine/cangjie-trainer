@@ -45,6 +45,18 @@ describe('character sets', () => {
     }
   })
 
+  it('contains the typed forms of normalized Cantonese particles', () => {
+    for (const ch of '呢搵呀啦喇囉㗎') {
+      expect(CHARACTERS).toContain(ch)
+    }
+  })
+
+  it('does not contain HKCanCor transcription conventions or fillers', () => {
+    for (const ch of '噉囖哩揾吖嚹喀誒') {
+      expect(CHARACTERS).not.toContain(ch)
+    }
+  })
+
   it('does not contain rare characters', () => {
     for (const ch of '硯壺蟻嶼蝶蜂莓醋襪嗽') {
       expect(CHARACTERS).not.toContain(ch)

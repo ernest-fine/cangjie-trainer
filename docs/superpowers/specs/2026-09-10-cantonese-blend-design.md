@@ -18,13 +18,20 @@ The trainer's 10 sets currently rank characters by a Taiwan written-text corpus,
 ### Blend
 
 1. For each corpus, count Han characters (`\p{Script=Han}`) and convert counts to a per-million rate: `count / corpusTotal * 1_000_000`.
-2. Apply the normalization table to the spoken corpus before counting, so transcription variants merge into the forms people type:
+2. Apply the normalization table to the spoken corpus before counting. HKCanCor spells several particles and pronouns with one fixed character per Jyutping syllable; typed Cantonese uses different characters, so the corpus forms merge into the typed forms:
 
-   | corpus form | typed form |
-   |---|---|
-   | 噉 | 咁 |
-   | 囖 | 囉 |
-   | 𡃉 | 㗎 |
+   | corpus form | Jyutping | typed form |
+   |---|---|---|
+   | 噉 | gam2 | 咁 |
+   | 囖 | lo1 | 囉 |
+   | 𡃉 | gaa3 | 㗎 |
+   | 哩 | ni1 | 呢 |
+   | 揾 | wan2 | 搵 |
+   | 吖 | aa1 | 呀 |
+   | 喇 | laa1 | 啦 |
+   | 嚹 | laa3 | 喇 |
+
+   Mapping is a single lookup per character, so 嚹 becomes 喇 and stops there. Two paralinguistic fillers the transcribers wrote as characters, 喀 (haak6 backchannel) and 誒 (e6 hesitation), are not counted from the spoken corpus at all, because nobody types them.
 
 3. Blended score = `0.5 * writtenRate + 0.5 * spokenRate`. A character absent from one corpus contributes 0 from that side.
 4. Drop any character outside the Basic Multilingual Plane (code point above U+FFFF) so every character is reachable on a standard Cangjie keyboard.
