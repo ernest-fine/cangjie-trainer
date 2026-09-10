@@ -1,32 +1,22 @@
-# React + TypeScript + Vite
+# Cangjie Trainer
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Practice the Cangjie input method by retyping the 1000 most common traditional Chinese characters, 100 at a time, with your real OS Cangjie keyboard.
 
-Currently, two official plugins are available:
+- Ten frequency sets, each 100 characters
+- Timed mode with a stopwatch and a characters-per-minute report
+- Free mode with no clock
+- Scramble the order so you learn the characters, not the sequence
+- Personal bests saved in your browser
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Run
 
-## React Compiler
+    npm install
+    npm run dev
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Test
 
-## Expanding the Oxlint configuration
+    npm test
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## Notes
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
-
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Switch your system keyboard to Cangjie before typing. The app only reads committed characters from the IME.
