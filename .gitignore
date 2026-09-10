@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Downloaded corpora for scripts/build-characters.mjs
+data-sources/
