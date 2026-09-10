@@ -105,6 +105,13 @@ describe('shuffle', () => {
     const rng = () => 0
     expect(shuffle(['a', 'b', 'c'], rng)).toEqual(shuffle(['a', 'b', 'c'], rng))
   })
+
+  it('tolerates an rng that returns exactly 1', () => {
+    const items = ['a', 'b', 'c', 'd']
+    const result = shuffle(items, () => 1)
+    expect([...result].sort()).toEqual([...items].sort())
+    expect(result).not.toContain(undefined)
+  })
 })
 
 describe('missedCharacters', () => {

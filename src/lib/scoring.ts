@@ -1,6 +1,6 @@
 import type { PositionState } from './types'
 
-export const DEFAULT_TOTAL = 100
+const DEFAULT_TOTAL = 100
 
 export function positionStates(target: string[], typed: string): PositionState[] {
   const chars = [...typed]
@@ -37,10 +37,11 @@ export function accuracy(wrongTally: number, total = DEFAULT_TOTAL): number {
   return Math.max(0, total - wrongTally) / total
 }
 
+// Fisher-Yates shuffle. The `rng` should return a number in [0, 1); returning exactly 1 is tolerated.
 export function shuffle<T>(items: readonly T[], rng: () => number = Math.random): T[] {
   const result = [...items]
   for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1))
+    const j = Math.min(i, Math.floor(rng() * (i + 1)))
     ;[result[i], result[j]] = [result[j], result[i]]
   }
   return result
