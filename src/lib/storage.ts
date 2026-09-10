@@ -62,6 +62,7 @@ export function qualifiesAsBest(
   existing: BestRecord | undefined,
   candidate: { elapsedMs: number; accuracy: number },
 ): boolean {
+  if (candidate.elapsedMs <= 0) return false
   if (candidate.accuracy < MIN_BEST_ACCURACY) return false
   if (!existing) return true
   return candidate.elapsedMs < existing.bestMs

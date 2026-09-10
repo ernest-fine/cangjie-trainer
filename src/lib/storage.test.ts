@@ -73,6 +73,10 @@ describe('qualifiesAsBest', () => {
     expect(qualifiesAsBest(undefined, { elapsedMs: 120_000, accuracy: 0.89 })).toBe(false)
   })
 
+  it('rejects a zero-duration run', () => {
+    expect(qualifiesAsBest(undefined, { elapsedMs: 0, accuracy: 1 })).toBe(false)
+  })
+
   it('accepts a faster accurate run', () => {
     expect(qualifiesAsBest(record, { elapsedMs: 80_000, accuracy: 0.92 })).toBe(true)
   })
