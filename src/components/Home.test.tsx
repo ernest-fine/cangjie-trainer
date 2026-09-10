@@ -36,4 +36,11 @@ describe('Home', () => {
     await userEvent.click(within(card).getByRole('button', { name: 'Free' }))
     expect(onStart).toHaveBeenCalledWith(3, 'free')
   })
+
+  it('describes the blended character sets', () => {
+    render(<Home bests={{}} onStart={() => {}} />)
+    expect(
+      screen.getByText(/Retype the most common characters of Hong Kong written Chinese and Cantonese\./),
+    ).toBeInTheDocument()
+  })
 })
