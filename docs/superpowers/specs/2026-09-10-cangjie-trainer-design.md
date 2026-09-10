@@ -16,6 +16,7 @@ The learning loop: pick a frequency set, type it, see which characters were miss
 - Traditional Chinese characters, ordered by frequency of use.
 - 10 sets of 100 characters. Set 1 is ranks 1 to 100, set 2 is ranks 101 to 200, and so on to rank 1000.
 - Sets are static data shipped with the app as one string of 1000 characters, sliced into sets at module load.
+- Data source: the Taiwan 1980s to 1990s written-text character frequency table (八、九十年代台灣字頻統計) from the CUHK Chinese Character Frequency Statistics for Hong Kong, Mainland China and Taiwan, https://humanum.arts.cuhk.edu.hk/Lexis/chifreq/. The test suite pins anchor characters beyond rank 500 so a regenerated list cannot drift silently.
 
 ### Modes
 
