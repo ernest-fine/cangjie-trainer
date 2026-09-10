@@ -52,4 +52,15 @@ describe('App', () => {
     expect(screen.queryByText('characters per minute')).not.toBeInTheDocument()
     expect(screen.getByText('Done')).toBeInTheDocument()
   })
+
+  it('retry scrambled starts the drill with a different order', async () => {
+    render(<App />)
+    await userEvent.click(within(screen.getAllByRole('article')[2]).getByRole('button', { name: 'Timed' }))
+    typeCommitted(SETS[2].join(''))
+    await userEvent.click(screen.getByRole('button', { name: 'Retry scrambled' }))
+    const shown = [...document.querySelectorAll('[data-state]')].map((el) => el.textContent).join('')
+    expect(shown).toHaveLength(100)
+    expect(shown).not.toBe(SETS[2].join(''))
+    expect([...shown].sort()).toEqual([...SETS[2]].sort())
+  })
 })
