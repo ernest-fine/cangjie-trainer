@@ -22,7 +22,7 @@ describe('App', () => {
 
   it('runs a timed set through to the report and stores the best', async () => {
     render(<App />)
-    const card = screen.getAllByRole('article')[0]
+    const card = screen.getByRole('article', { name: STRINGS.setName(1) })
     await userEvent.click(within(card).getByRole('button', { name: STRINGS.timed }))
     expect(screen.getByText(STRINGS.setName(1))).toBeInTheDocument()
 
@@ -34,12 +34,14 @@ describe('App', () => {
     expect(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}')).toHaveProperty('0')
 
     await userEvent.click(screen.getByRole('button', { name: STRINGS.backToSets }))
-    expect(within(screen.getAllByRole('article')[0]).getByText('100%')).toBeInTheDocument()
+    expect(within(screen.getByRole('article', { name: STRINGS.setName(1) })).getByText('100%')).toBeInTheDocument()
   })
 
   it('retry returns to the drill with the same set', async () => {
     render(<App />)
-    await userEvent.click(within(screen.getAllByRole('article')[1]).getByRole('button', { name: STRINGS.timed }))
+    await userEvent.click(
+      within(screen.getByRole('article', { name: STRINGS.setName(2) })).getByRole('button', { name: STRINGS.timed }),
+    )
     typeCommitted(SETS[1].join(''))
     await userEvent.click(screen.getByRole('button', { name: STRINGS.retry }))
     expect(screen.getByText(STRINGS.setName(2))).toBeInTheDocument()
@@ -48,7 +50,9 @@ describe('App', () => {
 
   it('free mode never shows a report', async () => {
     render(<App />)
-    await userEvent.click(within(screen.getAllByRole('article')[0]).getByRole('button', { name: STRINGS.free }))
+    await userEvent.click(
+      within(screen.getByRole('article', { name: STRINGS.setName(1) })).getByRole('button', { name: STRINGS.free }),
+    )
     typeCommitted(SETS[0].join(''))
     expect(screen.queryByText(STRINGS.charsPerMinute)).not.toBeInTheDocument()
     expect(screen.getByText(STRINGS.done)).toBeInTheDocument()
@@ -56,12 +60,23 @@ describe('App', () => {
 
   it('retry scrambled starts the drill with a different order', async () => {
     render(<App />)
-    await userEvent.click(within(screen.getAllByRole('article')[2]).getByRole('button', { name: STRINGS.timed }))
+    await userEvent.click(
+      within(screen.getByRole('article', { name: STRINGS.setName(3) })).getByRole('button', { name: STRINGS.timed }),
+    )
     typeCommitted(SETS[2].join(''))
     await userEvent.click(screen.getByRole('button', { name: STRINGS.retryScrambled }))
     const shown = [...document.querySelectorAll('[data-state]')].map((el) => el.textContent).join('')
     expect(shown).toHaveLength(100)
     expect(shown).not.toBe(SETS[2].join(''))
     expect([...shown].sort()).toEqual([...SETS[2]].sort())
+  })
+
+  it('starts a time attack from the home card', async () => {
+    render(<App />)
+    const card = screen.getByRole('article', { name: STRINGS.attack })
+    await userEvent.click(within(card).getByRole('button', { name: STRINGS.minutes(1) }))
+    expect(screen.getByText(STRINGS.attackTitle(1))).toBeInTheDocument()
+    expect(screen.getByRole('timer', { name: STRINGS.remaining })).toHaveTextContent('1:00.0')
+    expect(document.querySelectorAll('[data-state]')).toHaveLength(60)
   })
 })
