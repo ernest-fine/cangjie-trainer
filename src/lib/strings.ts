@@ -1,13 +1,13 @@
 /** Every user-facing string. Standard written Chinese, Hong Kong usage. */
 export const STRINGS = Object.freeze({
   appTitle: '倉頡練習',
-  subtitle: '以倉頡輸入法練習香港書面語及粵語最常用的字',
+  subtitle: '以倉頡輸入法練習香港書面語及粵語中最常用的字',
 
   setName: (n: number) => `第 ${n} 組`,
   setRange: (from: number, to: number) => `第 ${from} 至 ${to} 字`,
   bestLabel: '最佳',
   noBest: '—',
-  timed: '計時',
+  timed: '計時練習',
   free: '自由練習',
 
   scramble: '打亂次序',
@@ -32,6 +32,6 @@ export const STRINGS = Object.freeze({
   missed: '錯字',
   noMistakes: '全部正確',
   retry: '再試一次',
-  retryScrambled: '打亂再試',
-  backToSets: '返回字組',
+  retryScrambled: '打亂後再試',
+  backToSets: '返回選單',
 })

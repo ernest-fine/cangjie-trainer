@@ -17,13 +17,13 @@ Standard written Chinese, Hong Kong usage. Not colloquial Cantonese. The exact s
 | Where | English today | Chinese |
 |---|---|---|
 | `index.html` title, Home heading | Cangjie Trainer | 倉頡練習 |
-| Home subtitle | 倉頡練習 · Retype the most common characters of Hong Kong written Chinese and Cantonese. | 以倉頡輸入法練習香港書面語及粵語最常用的字 |
+| Home subtitle | 倉頡練習 · Retype the most common characters of Hong Kong written Chinese and Cantonese. | 以倉頡輸入法練習香港書面語及粵語中最常用的字 |
 | Set card name | Set 1 | 第 1 組 |
 | Set card range | 1 to 100 | 第 1 至 100 字 |
 | Set card best label | Best | 最佳 |
 | Set card no best | — | — |
-| Set card buttons | Timed / Free | 計時 / 自由練習 |
-| Drill mode label | Timed / Free | 計時 / 自由練習 |
+| Set card buttons | Timed / Free | 計時練習 / 自由練習 |
+| Drill mode label | Timed / Free | 計時練習 / 自由練習 |
 | Drill buttons | Scramble / Restart / Back | 打亂次序 / 重新開始 / 返回 |
 | Drill hint | Switch your keyboard to Cangjie | 請切換至倉頡輸入法 |
 | Drill input placeholder | 在此輸入 | 在此輸入 |
@@ -35,7 +35,7 @@ Standard written Chinese, Hong Kong usage. Not colloquial Cantonese. The exact s
 | Report record values | New best / Best 1:20.0 / No record yet | 新紀錄 / 最佳 1:20.0 / 未有紀錄 |
 | Report missed label | Missed | 錯字 |
 | Report no mistakes | No mistakes | 全部正確 |
-| Report buttons | Retry / Retry scrambled / Back to sets | 再試一次 / 打亂再試 / 返回字組 |
+| Report buttons | Retry / Retry scrambled / Back to sets | 再試一次 / 打亂後再試 / 返回選單 |
 | Drill pause button (see the pause spec) | Pause / Resume | 暫停 / 繼續 |
 | Drill paused overlay (see the pause spec) | Paused | 已暫停 |
 
