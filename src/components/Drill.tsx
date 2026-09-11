@@ -22,7 +22,7 @@ const IME_PROCESSING_KEY_CODE = 229
 
 export function Drill({ setIndex, mode, order, onFinish, onBack, now }: DrillProps) {
   const drill = useDrill(order, { now })
-  const { isPaused, pause, resume, elapsedMs, wrongTally, wrongPositions, isDone, order: drillOrder } = drill
+  const { isPaused, isRunning, isDone, startedAt, runId, states, pause, resume, elapsedMs, wrongTally, wrongPositions, order: drillOrder } = drill
   const inputRef = useRef<HTMLInputElement | null>(null)
   const reported = useRef(false)
   const timed = mode === 'timed'
@@ -72,7 +72,7 @@ export function Drill({ setIndex, mode, order, onFinish, onBack, now }: DrillPro
   }, [timed, pause])
 
   const focusInput = () => inputRef.current?.focus()
-  const canPause = drill.startedAt !== null && !drill.isDone
+  const canPause = startedAt !== null && !isDone
 
   return (
     <main className={styles.screen} onClick={focusInput}>
@@ -83,12 +83,12 @@ export function Drill({ setIndex, mode, order, onFinish, onBack, now }: DrillPro
         </div>
         {timed && (
           <span className={styles.clock}>
-            <Clock elapsedMs={drill.elapsedMs} running={drill.isRunning} />
+            <Clock elapsedMs={elapsedMs} running={isRunning} />
           </span>
         )}
         {timed && (
-          <Button variant="secondary" onClick={drill.isPaused ? drill.resume : drill.pause} disabled={!canPause}>
-            {drill.isPaused ? STRINGS.resume : STRINGS.pause}
+          <Button variant="secondary" onClick={isPaused ? resume : pause} disabled={!canPause}>
+            {isPaused ? STRINGS.resume : STRINGS.pause}
           </Button>
         )}
         <Button variant="secondary" onClick={drill.scramble}>
@@ -102,22 +102,24 @@ export function Drill({ setIndex, mode, order, onFinish, onBack, now }: DrillPro
         </Button>
       </header>
 
-      {drill.isPaused ? (
-        <div className={styles.pausedOverlay} role="dialog" aria-label={STRINGS.paused}>
-          <p className={styles.pausedLabel}>{STRINGS.paused}</p>
-          <Button variant="primary" onClick={drill.resume}>
-            {STRINGS.resume}
-          </Button>
-        </div>
-      ) : (
-        <CharacterGrid order={drill.order} states={drill.states} />
-      )}
+      <div className={styles.gridArea}>
+        {/* The grid keeps its layout box while paused so the page does not jump. */}
+        <CharacterGrid order={drillOrder} states={states} concealed={isPaused} />
+        {isPaused && (
+          <div className={styles.pausedOverlay} role="dialog" aria-label={STRINGS.paused}>
+            <p className={styles.pausedLabel}>{STRINGS.paused}</p>
+            <Button variant="primary" onClick={resume}>
+              {STRINGS.resume}
+            </Button>
+          </div>
+        )}
+      </div>
 
       <p className={styles.hint}>{STRINGS.hint}</p>
 
-      <DrillInput key={drill.runId} onValue={drill.onInput} inputRef={inputRef} disabled={drill.isDone || drill.isPaused} />
+      <DrillInput key={runId} onValue={drill.onInput} inputRef={inputRef} disabled={isDone || isPaused} />
 
-      {mode === 'free' && drill.isDone && <p className={styles.done}>{STRINGS.done}</p>}
+      {mode === 'free' && isDone && <p className={styles.done}>{STRINGS.done}</p>}
     </main>
   )
 }

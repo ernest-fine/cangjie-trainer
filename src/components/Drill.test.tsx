@@ -163,6 +163,18 @@ describe('Drill', () => {
       expect(screen.getByText(STRINGS.paused)).toBeInTheDocument()
     })
 
+    it('restart while paused clears the pause and re-enables a fresh input', async () => {
+      render(<Drill setIndex={0} mode="timed" order={order} onFinish={() => {}} onBack={() => {}} />)
+      typeCommitted(order[0])
+      await userEvent.click(screen.getByRole('button', { name: STRINGS.pause }))
+      await userEvent.click(screen.getByRole('button', { name: STRINGS.restart }))
+      expect(screen.queryByText(STRINGS.paused)).not.toBeInTheDocument()
+      expect(document.querySelectorAll('[data-state]')).toHaveLength(100)
+      const input = screen.getByRole('textbox') as HTMLInputElement
+      expect(input).toBeEnabled()
+      expect(input.value).toBe('')
+    })
+
     it('does not pause on hide before the clock starts', () => {
       render(<Drill setIndex={0} mode="timed" order={order} onFinish={() => {}} onBack={() => {}} />)
       setVisibility('hidden')
