@@ -5,6 +5,8 @@ import type { PositionState } from '../lib/types'
 export interface UseDrillOptions {
   now?: () => number
   rng?: () => number
+  /** Time attack: the run ends when elapsed time reaches this. */
+  limitMs?: number
 }
 
 export interface DrillState {
@@ -29,6 +31,11 @@ export interface Drill extends DrillState {
   isRunning: boolean
   /** Elapsed time excluding pauses; 0 before the clock starts. */
   elapsedMs(): number
+  /** Time left before the limit; Infinity without a limit; clamped at 0. */
+  remainingMs(): number
+  isExpired: boolean
+  /** Ends the run if the limit has been reached. No-op otherwise. */
+  expire(): void
   onInput(value: string, isComposing: boolean): void
   scramble(): void
   restart(): void
@@ -51,6 +58,7 @@ function freshState(order: string[], runId: number): DrillState {
 export function useDrill(initialOrder: string[], options: UseDrillOptions = {}): Drill {
   const now = useMemo(() => options.now ?? (() => performance.now()), [options.now])
   const rng = useMemo(() => options.rng ?? Math.random, [options.rng])
+  const limitMs = options.limitMs
   const [state, setState] = useState<DrillState>(() => freshState(initialOrder, 0))
 
   const onInput = useCallback(
@@ -105,8 +113,30 @@ export function useDrill(initialOrder: string[], options: UseDrillOptions = {}):
     return Math.max(0, end - state.startedAt - state.pausedMs - openPause)
   }, [state.startedAt, state.endedAt, state.pausedAt, state.pausedMs, now])
 
+  const remainingMs = useCallback(() => {
+    if (limitMs === undefined) return Infinity
+    return Math.max(0, limitMs - elapsedMs())
+  }, [limitMs, elapsedMs])
+
+  const expire = useCallback(() => {
+    if (limitMs === undefined) return
+    const t = now()
+    setState((prev) => {
+      if (prev.startedAt === null || prev.endedAt !== null || prev.pausedAt !== null) return prev
+      const elapsed = t - prev.startedAt - prev.pausedMs
+      if (elapsed < limitMs) return prev
+      return { ...prev, endedAt: prev.startedAt + prev.pausedMs + limitMs }
+    })
+  }, [limitMs, now])
+
   const states = useMemo(() => positionStates(state.order, state.typed), [state.order, state.typed])
   const wrongPositions = useMemo(() => wrongPositionsOf(states), [states])
+
+  const isExpired =
+    limitMs !== undefined &&
+    state.startedAt !== null &&
+    state.endedAt !== null &&
+    state.endedAt - state.startedAt - state.pausedMs >= limitMs
 
   return {
     ...state,
@@ -116,6 +146,9 @@ export function useDrill(initialOrder: string[], options: UseDrillOptions = {}):
     isPaused: state.pausedAt !== null,
     isRunning: state.startedAt !== null && state.endedAt === null && state.pausedAt === null,
     elapsedMs,
+    remainingMs,
+    isExpired,
+    expire,
     onInput,
     scramble,
     restart,
