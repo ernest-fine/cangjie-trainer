@@ -2,30 +2,34 @@ import { CANGJIE } from '../data/cangjie'
 import { radicalsFor } from '../lib/cangjie'
 import { accuracy, charsPerMinute, formatTime } from '../lib/scoring'
 import { STRINGS } from '../lib/strings'
-import type { BestRecord, RunResult } from '../lib/types'
+import type { RunResult } from '../lib/types'
 import { Button } from './Button'
 import styles from './Report.module.css'
 
 export interface ReportProps {
   result: RunResult
   isNewBest: boolean
-  previousBest: BestRecord | undefined
+  /** Formatted previous record, or undefined when there is none. */
+  previousBestText: string | undefined
   onRetry(): void
-  onRetryScrambled(): void
+  /** Omitted for time attacks; the button is hidden when absent. */
+  onRetryScrambled?: () => void
   onBack(): void
 }
 
-export function Report({ result, isNewBest, previousBest, onRetry, onRetryScrambled, onBack }: ReportProps) {
-  const cpm = charsPerMinute(result.elapsedMs)
-  const acc = Math.round(accuracy(result.wrongCount) * 100)
+export function Report({ result, isNewBest, previousBestText, onRetry, onRetryScrambled, onBack }: ReportProps) {
+  const attack = result.kind === 'attack'
+  const minutes = Math.round(result.durationMs / 60_000)
+  const cpm = attack ? charsPerMinute(result.durationMs, result.correctCount) : charsPerMinute(result.elapsedMs, result.typedCount)
+  const acc = Math.round(accuracy(result.wrongCount, result.typedCount) * 100)
 
   let recordText: string
   let recordClass = styles.statValue
   if (isNewBest) {
     recordText = STRINGS.newBest
     recordClass = `${styles.statValue} ${styles.newBest}`
-  } else if (previousBest) {
-    recordText = STRINGS.best(formatTime(previousBest.bestMs))
+  } else if (previousBestText) {
+    recordText = previousBestText
   } else {
     recordText = STRINGS.noRecord
   }
@@ -34,7 +38,7 @@ export function Report({ result, isNewBest, previousBest, onRetry, onRetryScramb
     <main className={styles.screen}>
       <section className={styles.card} aria-labelledby="report-heading">
         <h1 id="report-heading" className={styles.heading}>
-          {STRINGS.setComplete(result.setIndex + 1)}
+          {attack ? STRINGS.attackTitle(minutes) : STRINGS.setComplete(result.setIndex + 1)}
         </h1>
 
         <div className={styles.hero}>
@@ -48,8 +52,8 @@ export function Report({ result, isNewBest, previousBest, onRetry, onRetryScramb
             <span className={styles.statLabel}>{STRINGS.accuracy}</span>
           </div>
           <div className={styles.stat}>
-            <span className={styles.statValue}>{formatTime(result.elapsedMs)}</span>
-            <span className={styles.statLabel}>{STRINGS.time}</span>
+            <span className={styles.statValue}>{attack ? STRINGS.charsUnit(result.correctCount) : formatTime(result.elapsedMs)}</span>
+            <span className={styles.statLabel}>{attack ? STRINGS.correctCount : STRINGS.time}</span>
           </div>
           <div className={styles.stat}>
             <span className={recordClass}>{recordText}</span>
@@ -87,9 +91,11 @@ export function Report({ result, isNewBest, previousBest, onRetry, onRetryScramb
           <Button variant="primary" onClick={onRetry}>
             {STRINGS.retry}
           </Button>
-          <Button variant="secondary" onClick={onRetryScrambled}>
-            {STRINGS.retryScrambled}
-          </Button>
+          {onRetryScrambled && (
+            <Button variant="secondary" onClick={onRetryScrambled}>
+              {STRINGS.retryScrambled}
+            </Button>
+          )}
           <Button variant="ghost" onClick={onBack}>
             {STRINGS.backToSets}
           </Button>

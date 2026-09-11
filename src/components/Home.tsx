@@ -1,22 +1,50 @@
 import { SETS, SET_SIZE } from '../data/sets'
+import { ATTACK_MINUTES } from '../lib/attack'
 import { formatTime } from '../lib/scoring'
 import { STRINGS } from '../lib/strings'
-import type { Bests, Mode } from '../lib/types'
+import type { AttackBests, AttackMinutes, Bests, Mode } from '../lib/types'
 import { Button } from './Button'
 import styles from './Home.module.css'
 
 export interface HomeProps {
   bests: Bests
+  attackBests: AttackBests
   onStart(setIndex: number, mode: Mode): void
+  onStartAttack(minutes: AttackMinutes): void
 }
 
-export function Home({ bests, onStart }: HomeProps) {
+export function Home({ bests, attackBests, onStart, onStartAttack }: HomeProps) {
   return (
     <main className={styles.screen}>
       <header className={styles.header}>
         <h1 className={styles.title}>{STRINGS.appTitle}</h1>
         <p className={styles.subtitle}>{STRINGS.subtitle}</p>
       </header>
+
+      <article className={`${styles.card} ${styles.attackCard}`} aria-labelledby="attack-title">
+        <div className={styles.cardHead}>
+          <h2 id="attack-title" className={styles.setName}>
+            {STRINGS.attack}
+          </h2>
+        </div>
+        <ul className={styles.attackList}>
+          {ATTACK_MINUTES.map((minutes) => {
+            const best = attackBests[minutes]
+            return (
+              <li key={minutes} className={styles.attackRow}>
+                <Button variant="primary" onClick={() => onStartAttack(minutes)}>
+                  {STRINGS.minutes(minutes)}
+                </Button>
+                <span className={styles.best}>
+                  <span className={styles.bestLabel}>{STRINGS.bestLabel}</span>
+                  <span>{best ? `${best.cpm} ${STRINGS.charsPerMinute} · ${Math.round(best.accuracy * 100)}%` : STRINGS.noBest}</span>
+                </span>
+              </li>
+            )
+          })}
+        </ul>
+      </article>
+
       <div className={styles.grid}>
         {SETS.map((set, i) => {
           const best = bests[i]

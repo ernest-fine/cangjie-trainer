@@ -6,9 +6,13 @@ import type { RunResult } from '../lib/types'
 import { Report } from './Report'
 
 const result: RunResult = {
+  kind: 'set',
   setIndex: 0,
+  durationMs: 0,
   order: [...'的一是'],
   elapsedMs: 90_000,
+  typedCount: 100,
+  correctCount: 95,
   wrongCount: 5,
   missed: ['的', '是'],
 }
@@ -17,7 +21,7 @@ const noop = () => {}
 
 describe('Report', () => {
   it('shows speed, accuracy, time, and missed characters', () => {
-    render(<Report result={result} isNewBest={false} previousBest={undefined} onRetry={noop} onRetryScrambled={noop} onBack={noop} />)
+    render(<Report result={result} isNewBest={false} previousBestText={undefined} onRetry={noop} onRetryScrambled={noop} onBack={noop} />)
     expect(screen.getByRole('heading', { name: STRINGS.setComplete(1) })).toBeInTheDocument()
     expect(screen.getByText('67')).toBeInTheDocument()
     expect(screen.getByText(STRINGS.charsPerMinute)).toBeInTheDocument()
@@ -32,7 +36,14 @@ describe('Report', () => {
 
   it('shows the Cangjie radicals and letters for each missed character', () => {
     render(
-      <Report result={{ ...result, missed: ['嗰', '草'] }} isNewBest={false} previousBest={undefined} onRetry={noop} onRetryScrambled={noop} onBack={noop} />,
+      <Report
+        result={{ ...result, missed: ['嗰', '草'] }}
+        isNewBest={false}
+        previousBestText={undefined}
+        onRetry={noop}
+        onRetryScrambled={noop}
+        onBack={noop}
+      />,
     )
     const list = screen.getByRole('list', { name: STRINGS.missed })
     const items = within(list).getAllByRole('listitem')
@@ -46,12 +57,12 @@ describe('Report', () => {
   })
 
   it('says new best when the run is a record', () => {
-    render(<Report result={result} isNewBest previousBest={undefined} onRetry={noop} onRetryScrambled={noop} onBack={noop} />)
+    render(<Report result={result} isNewBest previousBestText={undefined} onRetry={noop} onRetryScrambled={noop} onBack={noop} />)
     expect(screen.getByText(STRINGS.newBest)).toBeInTheDocument()
   })
 
   it('shows no record yet when there is no previous best', () => {
-    render(<Report result={result} isNewBest={false} previousBest={undefined} onRetry={noop} onRetryScrambled={noop} onBack={noop} />)
+    render(<Report result={result} isNewBest={false} previousBestText={undefined} onRetry={noop} onRetryScrambled={noop} onBack={noop} />)
     expect(screen.getByText(STRINGS.noRecord)).toBeInTheDocument()
   })
 
@@ -60,7 +71,7 @@ describe('Report', () => {
       <Report
         result={result}
         isNewBest={false}
-        previousBest={{ bestMs: 80_000, accuracy: 1, recordedAt: '' }}
+        previousBestText={STRINGS.best('1:20.0')}
         onRetry={noop}
         onRetryScrambled={noop}
         onBack={noop}
@@ -71,7 +82,14 @@ describe('Report', () => {
 
   it('shows a no-mistakes message when nothing was missed', () => {
     render(
-      <Report result={{ ...result, wrongCount: 0, missed: [] }} isNewBest={false} previousBest={undefined} onRetry={noop} onRetryScrambled={noop} onBack={noop} />,
+      <Report
+        result={{ ...result, wrongCount: 0, missed: [] }}
+        isNewBest={false}
+        previousBestText={undefined}
+        onRetry={noop}
+        onRetryScrambled={noop}
+        onBack={noop}
+      />,
     )
     expect(screen.getByText(STRINGS.noMistakes)).toBeInTheDocument()
   })
@@ -80,12 +98,46 @@ describe('Report', () => {
     const onRetry = vi.fn()
     const onRetryScrambled = vi.fn()
     const onBack = vi.fn()
-    render(<Report result={result} isNewBest={false} previousBest={undefined} onRetry={onRetry} onRetryScrambled={onRetryScrambled} onBack={onBack} />)
+    render(
+      <Report
+        result={result}
+        isNewBest={false}
+        previousBestText={undefined}
+        onRetry={onRetry}
+        onRetryScrambled={onRetryScrambled}
+        onBack={onBack}
+      />,
+    )
     await userEvent.click(screen.getByRole('button', { name: STRINGS.retry }))
     await userEvent.click(screen.getByRole('button', { name: STRINGS.retryScrambled }))
     await userEvent.click(screen.getByRole('button', { name: STRINGS.backToSets }))
     expect(onRetry).toHaveBeenCalled()
     expect(onRetryScrambled).toHaveBeenCalled()
     expect(onBack).toHaveBeenCalled()
+  })
+
+  it('reports a time attack by characters per minute and correct count', async () => {
+    const onRetry = vi.fn()
+    const attack: RunResult = {
+      kind: 'attack',
+      setIndex: -1,
+      durationMs: 120_000,
+      order: [],
+      elapsedMs: 120_000,
+      typedCount: 140,
+      correctCount: 137,
+      wrongCount: 3,
+      missed: ['嗰'],
+    }
+    render(<Report result={attack} isNewBest={false} previousBestText={undefined} onRetry={onRetry} onBack={noop} />)
+    expect(screen.getByRole('heading', { name: STRINGS.attackTitle(2) })).toBeInTheDocument()
+    expect(screen.getByText('69')).toBeInTheDocument() // round(137 / 2)
+    expect(screen.getByText('98%')).toBeInTheDocument() // 137 / 140
+    expect(screen.getByText(STRINGS.charsUnit(137))).toBeInTheDocument()
+    expect(screen.getByText(STRINGS.correctCount)).toBeInTheDocument()
+    expect(screen.queryByText(STRINGS.time)).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: STRINGS.retryScrambled })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: STRINGS.retry }))
+    expect(onRetry).toHaveBeenCalled()
   })
 })
