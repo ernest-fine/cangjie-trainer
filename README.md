@@ -32,6 +32,8 @@ The script downloads both sources into `data-sources/` (git-ignored), extracts t
 
 HKCanCor is released under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). The character list is a derived work: the corpus was normalized as described above and blended with the written-Chinese counts. Citation: Luke, K. K. and Wong, M. L. Y. (2015). The Hong Kong Cantonese Corpus: Design and Uses. Journal of Chinese Linguistics.
 
+Cangjie codes shown for missed characters are third-generation (倉頡三代) codes. Regenerate them with `npm run build:cangjie` (also run by `npm run build:characters`). Cangjie codes are from the Unicode Unihan database, © Unicode, Inc., used under the Unicode License v3 (https://www.unicode.org/license.txt).
+
 ## Notes
 
 Switch your system keyboard to Cangjie before typing. The app only reads committed characters from the IME.

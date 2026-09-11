@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "build:characters": "node scripts/build-characters.mjs"
+    "build:characters": "node scripts/build-characters.mjs && node scripts/build-cangjie.mjs",
+    "build:cangjie": "node scripts/build-cangjie.mjs"
   },
   "dependencies": {
     "react": "^19.2.8",
