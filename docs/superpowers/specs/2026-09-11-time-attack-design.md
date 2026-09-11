@@ -25,6 +25,7 @@ A countdown mode: type as many characters as possible in 1, 2, or 3 minutes, dra
 
 ### Drill screen in attack mode
 
+- The countdown starts on the first keystroke, including the first radical of a composition, as the stopwatch does in the sets.
 - The bar shows 限時挑戰 · 1 分鐘 in place of the set name and mode, and a countdown in place of the stopwatch: `formatTime(remainingMs())`, labelled 剩餘 for assistive technology via `aria-label`.
 - The grid is a three-row window. Row height is 20 characters. With `cursorRow = floor(typedLength / 20)`, the window's first row is `max(0, cursorRow - 1)`, clamped so that three rows are shown while the order allows. `CharacterGrid` receives the sliced `order` and `states` for those rows.
 - Pause, Escape, auto-pause, the hint, and the input are unchanged. The pause overlay covers the window. The bar shows 暫停, 重新開始, and 返回, but not 打亂次序.
