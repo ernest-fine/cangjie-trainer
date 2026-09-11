@@ -31,6 +31,12 @@ describe('randomOrder', () => {
     expect(randomOrder(pool, 30, seeded(4))).toEqual(randomOrder(pool, 30, seeded(4)))
   })
 
+  it('terminates and still avoids repeats with a constant rng', () => {
+    const order = randomOrder(pool, 20, () => 0.3)
+    expect(order).toHaveLength(20)
+    for (let i = 1; i < order.length; i++) expect(order[i]).not.toBe(order[i - 1])
+  })
+
   it('uses more than a handful of the pool', () => {
     expect(new Set(randomOrder(pool, 100, seeded(5))).size).toBeGreaterThan(5)
   })
@@ -42,6 +48,14 @@ describe('windowStart', () => {
     expect(windowStart(19)).toBe(0)
     expect(windowStart(20)).toBe(0)
     expect(windowStart(39)).toBe(0)
+  })
+
+  it('stops sliding so the last three rows stay full', () => {
+    expect(windowStart(560, 600)).toBe(540)
+    expect(windowStart(580, 600)).toBe(540)
+    expect(windowStart(599, 600)).toBe(540)
+    expect(windowStart(40, 600)).toBe(20)
+    expect(windowStart(50, 50)).toBe(0)
   })
 
   it('keeps the cursor row in the middle afterwards', () => {

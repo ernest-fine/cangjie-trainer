@@ -151,7 +151,7 @@ export function Drill({ setIndex, mode, order, durationMs, onFinish, onBack, now
   }
 
   // Attack mode shows a rolling three-row window; sets show everything.
-  const start = attack ? windowStart([...typed].length) : 0
+  const start = attack ? windowStart([...typed].length, drillOrder.length) : 0
   const end = attack ? start + ROW_LENGTH * WINDOW_ROWS : drillOrder.length
   const visibleOrder = drillOrder.slice(start, end)
   const visibleStates = states.slice(start, end)
