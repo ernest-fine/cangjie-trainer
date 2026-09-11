@@ -22,6 +22,7 @@ const IME_PROCESSING_KEY_CODE = 229
 
 export function Drill({ setIndex, mode, order, onFinish, onBack, now }: DrillProps) {
   const drill = useDrill(order, { now })
+  const { isPaused, pause, resume, elapsedMs, wrongTally, wrongPositions, isDone, order: drillOrder } = drill
   const inputRef = useRef<HTMLInputElement | null>(null)
   const reported = useRef(false)
   const timed = mode === 'timed'
@@ -31,21 +32,21 @@ export function Drill({ setIndex, mode, order, onFinish, onBack, now }: DrillPro
   }, [drill.runId])
 
   useEffect(() => {
-    if (!timed || !drill.isDone || reported.current) return
+    if (!timed || !isDone || reported.current) return
     reported.current = true
     onFinish({
       setIndex,
-      order: drill.order,
-      elapsedMs: drill.elapsedMs(),
-      wrongTally: drill.wrongTally,
-      missed: missedCharacters(drill.order, drill.wrongPositions),
+      order: drillOrder,
+      elapsedMs: elapsedMs(),
+      wrongTally,
+      missed: missedCharacters(drillOrder, wrongPositions),
     })
-  }, [timed, drill.isDone, drill.order, drill.elapsedMs, drill.wrongTally, drill.wrongPositions, onFinish, setIndex])
+  }, [timed, isDone, drillOrder, elapsedMs, wrongTally, wrongPositions, onFinish, setIndex])
 
   // Refocus the input whenever a pause ends.
   useEffect(() => {
-    if (!drill.isPaused) inputRef.current?.focus()
-  }, [drill.isPaused])
+    if (!isPaused) inputRef.current?.focus()
+  }, [isPaused])
 
   // Escape toggles pause, except while the IME is composing.
   useEffect(() => {
@@ -53,22 +54,22 @@ export function Drill({ setIndex, mode, order, onFinish, onBack, now }: DrillPro
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'Escape' || e.isComposing || e.keyCode === IME_PROCESSING_KEY_CODE) return
       e.preventDefault()
-      if (drill.isPaused) drill.resume()
-      else drill.pause()
+      if (isPaused) resume()
+      else pause()
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
-  }, [timed, drill.isPaused, drill.pause, drill.resume])
+  }, [timed, isPaused, pause, resume])
 
   // Auto-pause when the page is hidden. Never auto-resume.
   useEffect(() => {
     if (!timed) return
     const onVisibility = () => {
-      if (document.visibilityState === 'hidden') drill.pause()
+      if (document.visibilityState === 'hidden') pause()
     }
     document.addEventListener('visibilitychange', onVisibility)
     return () => document.removeEventListener('visibilitychange', onVisibility)
-  }, [timed, drill.pause])
+  }, [timed, pause])
 
   const focusInput = () => inputRef.current?.focus()
   const canPause = drill.startedAt !== null && !drill.isDone
