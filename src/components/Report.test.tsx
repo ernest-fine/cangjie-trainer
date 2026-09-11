@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { STRINGS } from '../lib/strings'
@@ -28,6 +28,20 @@ describe('Report', () => {
     expect(screen.getByText(STRINGS.missed)).toBeInTheDocument()
     expect(screen.getByText('的')).toBeInTheDocument()
     expect(screen.getByText('是')).toBeInTheDocument()
+  })
+
+  it('shows the Cangjie radicals and letters for each missed character', () => {
+    render(
+      <Report result={{ ...result, missed: ['嗰', '草'] }} isNewBest={false} previousBest={undefined} onRetry={noop} onRetryScrambled={noop} onBack={noop} />,
+    )
+    const list = screen.getByRole('list', { name: STRINGS.missed })
+    const items = within(list).getAllByRole('listitem')
+    expect(items).toHaveLength(2)
+    expect(items[0]).toHaveTextContent('嗰')
+    expect(items[0]).toHaveTextContent('口人田口')
+    expect(items[0]).toHaveTextContent('ROWR')
+    expect(items[1]).toHaveTextContent('廿日十')
+    expect(items[1]).toHaveTextContent('TAJ')
   })
 
   it('says new best when the run is a record', () => {

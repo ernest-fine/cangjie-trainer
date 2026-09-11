@@ -1,5 +1,7 @@
 import { accuracy, charsPerMinute, formatTime } from '../lib/scoring'
 import { STRINGS } from '../lib/strings'
+import { CANGJIE } from '../data/cangjie'
+import { radicalsFor } from '../lib/cangjie'
 import type { BestRecord, RunResult } from '../lib/types'
 import { Button } from './Button'
 import styles from './Report.module.css'
@@ -63,11 +65,20 @@ export function Report({ result, isNewBest, previousBest, onRetry, onRetryScramb
             <p className={styles.none}>{STRINGS.noMistakes}</p>
           ) : (
             <ul className={styles.missed} aria-labelledby="missed-label">
-              {result.missed.map((ch) => (
-                <li key={ch} className={styles.missedGlyph}>
-                  {ch}
-                </li>
-              ))}
+              {result.missed.map((ch) => {
+                const code = CANGJIE[ch]
+                return (
+                  <li key={ch} className={styles.missedCard}>
+                    <span className={styles.missedGlyph}>{ch}</span>
+                    {code && (
+                      <>
+                        <span className={styles.missedRadicals}>{radicalsFor(code)}</span>
+                        <span className={styles.missedCode}>{code}</span>
+                      </>
+                    )}
+                  </li>
+                )
+              })}
             </ul>
           )}
         </div>

@@ -86,20 +86,43 @@
 .missed {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.5rem;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+.missedCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  min-width: 5.5rem;
+  padding: 0.6rem 0.5rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background: var(--wrong-soft);
+}
+
 .missedGlyph {
   font-family: var(--font-cjk);
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   line-height: 1;
-  padding: 0.45rem 0.55rem;
-  border-radius: var(--radius-sm);
   color: var(--wrong);
-  background: var(--wrong-soft);
+}
+
+.missedRadicals {
+  font-family: var(--font-cjk);
+  font-size: 0.95rem;
+  line-height: 1.2;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.missedCode {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
 }
 
 .none {
