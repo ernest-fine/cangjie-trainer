@@ -104,8 +104,9 @@ export function useDrill(initialOrder: string[], options: UseDrillOptions = {}):
 
   const elapsedMs = useCallback(() => {
     if (state.startedAt === null) return 0
-    const end = state.endedAt ?? now()
-    const openPause = state.pausedAt !== null ? now() - state.pausedAt : 0
+    const t = now()
+    const end = state.endedAt ?? t
+    const openPause = state.pausedAt !== null ? t - state.pausedAt : 0
     return Math.max(0, end - state.startedAt - state.pausedMs - openPause)
   }, [state.startedAt, state.endedAt, state.pausedAt, state.pausedMs, now])
 

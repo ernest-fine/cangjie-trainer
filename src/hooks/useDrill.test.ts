@@ -150,6 +150,7 @@ describe('useDrill', () => {
       act(() => result.current.onInput(order[0], false))
       act(() => result.current.resume())
       expect(result.current.isPaused).toBe(false)
+      expect(result.current.pausedMs).toBe(0)
       clock.advance(100)
       act(() => result.current.pause())
       const firstPausedAt = result.current.pausedAt

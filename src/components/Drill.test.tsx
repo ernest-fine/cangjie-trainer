@@ -1,6 +1,6 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { STRINGS } from '../lib/strings'
 import { Drill } from './Drill'
 
@@ -117,7 +117,8 @@ describe('Drill', () => {
       expect(screen.getByText(STRINGS.paused)).toBeInTheDocument()
       expect(document.querySelectorAll('[data-state]')).toHaveLength(0)
       expect(screen.getByRole('textbox')).toBeDisabled()
-      await userEvent.click(screen.getByRole('dialog').querySelector('button')!)
+      expect(within(screen.getByRole('dialog')).getByRole('button', { name: STRINGS.resume })).toHaveFocus()
+      await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: STRINGS.resume }))
       expect(screen.queryByText(STRINGS.paused)).not.toBeInTheDocument()
       expect(document.querySelectorAll('[data-state]')).toHaveLength(100)
       expect(screen.getByRole('textbox')).toBeEnabled()
@@ -132,25 +133,64 @@ describe('Drill', () => {
       t = 1000
       await userEvent.click(screen.getByRole('button', { name: STRINGS.pause }))
       t = 61_000
-      await userEvent.click(screen.getAllByRole('button', { name: STRINGS.resume })[0])
+      await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: STRINGS.resume }))
       t = 62_000
       typeCommitted(order.join(''))
       expect(onFinish.mock.calls[0][0].elapsedMs).toBe(2000)
     })
 
     it('escape toggles pause and resume', () => {
-      render(<Drill setIndex={0} mode="timed" order={order} onFinish={() => {}} onBack={() => {}} />)
-      typeCommitted(order[0])
-      fireEvent.keyDown(document, { key: 'Escape' })
-      expect(screen.getByText(STRINGS.paused)).toBeInTheDocument()
-      fireEvent.keyDown(document, { key: 'Escape' })
-      expect(screen.queryByText(STRINGS.paused)).not.toBeInTheDocument()
+      vi.useFakeTimers()
+      try {
+        render(<Drill setIndex={0} mode="timed" order={order} onFinish={() => {}} onBack={() => {}} />)
+        typeCommitted(order[0])
+        vi.advanceTimersByTime(150) // past the post-composition grace window
+        fireEvent.keyDown(document, { key: 'Escape' })
+        expect(screen.getByText(STRINGS.paused)).toBeInTheDocument()
+        fireEvent.keyDown(document, { key: 'Escape' })
+        expect(screen.queryByText(STRINGS.paused)).not.toBeInTheDocument()
+      } finally {
+        vi.useRealTimers()
+      }
     })
 
     it('escape during an IME composition does nothing', () => {
       render(<Drill setIndex={0} mode="timed" order={order} onFinish={() => {}} onBack={() => {}} />)
       typeCommitted(order[0])
-      fireEvent.keyDown(document, { key: 'Escape', keyCode: 229 })
+      fireEvent.keyDown(document, { key: 'Escape', isComposing: true })
+      expect(screen.queryByText(STRINGS.paused)).not.toBeInTheDocument()
+      fireEvent.keyDown(document, { key: 'Process', keyCode: 229 })
+      expect(screen.queryByText(STRINGS.paused)).not.toBeInTheDocument()
+    })
+
+    it('escape while the input reports a composition in progress does nothing', () => {
+      render(<Drill setIndex={0} mode="timed" order={order} onFinish={() => {}} onBack={() => {}} />)
+      typeCommitted(order[0])
+      const input = screen.getByRole('textbox')
+      fireEvent.compositionStart(input)
+      fireEvent.keyDown(document, { key: 'Escape' })
+      expect(screen.queryByText(STRINGS.paused)).not.toBeInTheDocument()
+    })
+
+    describe('escape right after a composition ends', () => {
+      afterEach(() => vi.useRealTimers())
+
+      it('is treated as cancelling the composition, then works again shortly after', () => {
+        vi.useFakeTimers()
+        render(<Drill setIndex={0} mode="timed" order={order} onFinish={() => {}} onBack={() => {}} />)
+        typeCommitted(order[0])
+        // Some browsers end the composition first and only then deliver the Escape keydown.
+        fireEvent.keyDown(document, { key: 'Escape' })
+        expect(screen.queryByText(STRINGS.paused)).not.toBeInTheDocument()
+        vi.advanceTimersByTime(150)
+        fireEvent.keyDown(document, { key: 'Escape' })
+        expect(screen.getByText(STRINGS.paused)).toBeInTheDocument()
+      })
+    })
+
+    it('escape before the clock starts does nothing', () => {
+      render(<Drill setIndex={0} mode="timed" order={order} onFinish={() => {}} onBack={() => {}} />)
+      fireEvent.keyDown(document, { key: 'Escape' })
       expect(screen.queryByText(STRINGS.paused)).not.toBeInTheDocument()
     })
 
@@ -173,6 +213,7 @@ describe('Drill', () => {
       const input = screen.getByRole('textbox') as HTMLInputElement
       expect(input).toBeEnabled()
       expect(input.value).toBe('')
+      expect(input).toHaveFocus()
     })
 
     it('does not pause on hide before the clock starts', () => {

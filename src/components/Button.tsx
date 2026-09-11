@@ -1,7 +1,8 @@
-import type { ButtonHTMLAttributes } from 'react'
+import type { ComponentProps } from 'react'
 import styles from './Button.module.css'
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+/** `ComponentProps` includes `ref`, which React 19 passes as a normal prop. */
+export interface ButtonProps extends ComponentProps<'button'> {
   variant?: 'primary' | 'secondary' | 'ghost'
 }
 
