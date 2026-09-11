@@ -306,10 +306,12 @@ describe('Drill', () => {
       expect(onFinish).toHaveBeenCalledTimes(1)
     })
 
-    it('hides the set name and the done mark', () => {
+    it('hides the set name, the done mark, and the scramble button', () => {
       renderAttack()
       expect(screen.queryByText(STRINGS.setName(0))).not.toBeInTheDocument()
       expect(screen.queryByText(STRINGS.done)).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: STRINGS.scramble })).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: STRINGS.restart })).toBeInTheDocument()
     })
   })
 })

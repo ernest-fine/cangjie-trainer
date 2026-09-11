@@ -181,9 +181,11 @@ export function Drill({ setIndex, mode, order, durationMs, onFinish, onBack, now
             {isPaused ? STRINGS.resume : STRINGS.pause}
           </Button>
         )}
-        <Button variant="secondary" onClick={scramble}>
-          {STRINGS.scramble}
-        </Button>
+        {!attack && (
+          <Button variant="secondary" onClick={scramble}>
+            {STRINGS.scramble}
+          </Button>
+        )}
         <Button variant="secondary" onClick={restart}>
           {STRINGS.restart}
         </Button>

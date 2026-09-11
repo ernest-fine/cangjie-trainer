@@ -21,13 +21,13 @@ A countdown mode: type as many characters as possible in 1, 2, or 3 minutes, dra
 - New option `limitMs?: number`. New derived values `remainingMs(): number` (`limitMs - elapsedMs()`, clamped at 0; `Infinity` when no limit) and `isExpired: boolean`.
 - New action `expire()`: if the clock has started, the run is not done, and `elapsedMs() >= limitMs`, it sets `endedAt` so that `elapsedMs()` equals exactly `limitMs` (that is, `endedAt = startedAt + pausedMs + limitMs`). Otherwise a no-op. `onInput` after `endedAt` is set is ignored, as today, so a composition committed after zero is discarded.
 - The Drill drives `expire()` from a 100 ms interval while the run is running (same cadence as the clock), and calls it once more on every committed input, so the end is never later than one tick after zero.
-- `wrongPositions`, `pause`, `resume`, `restart`, `scramble` are unchanged. `scramble` on an attack redraws nothing; it shuffles the existing order, which is still random. `restart` keeps the order.
+- `wrongPositions`, `pause`, `resume`, `restart`, `scramble` are unchanged in the hook. The Drill hides the 打亂次序 button in attack mode, since the order is already random; `restart` keeps the order.
 
 ### Drill screen in attack mode
 
 - The bar shows 限時挑戰 · 1 分鐘 in place of the set name and mode, and a countdown in place of the stopwatch: `formatTime(remainingMs())`, labelled 剩餘 for assistive technology via `aria-label`.
 - The grid is a three-row window. Row height is 20 characters. With `cursorRow = floor(typedLength / 20)`, the window's first row is `max(0, cursorRow - 1)`, clamped so that three rows are shown while the order allows. `CharacterGrid` receives the sliced `order` and `states` for those rows.
-- Pause, Escape, auto-pause, the hint, and the input are unchanged. The pause overlay covers the window.
+- Pause, Escape, auto-pause, the hint, and the input are unchanged. The pause overlay covers the window. The bar shows 暫停, 重新開始, and 返回, but not 打亂次序.
 - When the run ends, `onFinish` receives a `RunResult` with `kind: 'attack'`, `durationMs`, `typedCount` (characters committed, capped at the order), `correctCount` (`typedCount - wrongCount`), `wrongCount`, `missed`, and `elapsedMs` equal to `durationMs`.
 
 ### `RunResult`
