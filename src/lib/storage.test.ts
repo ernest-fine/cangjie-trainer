@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { STORAGE_KEY, loadBests, qualifiesAsBest, saveBest } from './storage'
-import type { BestRecord } from './types'
+import { ATTACK_STORAGE_KEY, STORAGE_KEY, loadAttackBests, loadBests, qualifiesAsAttackBest, qualifiesAsBest, saveAttackBest, saveBest } from './storage'
+import type { AttackBestRecord, BestRecord } from './types'
 
 function fakeStorage(initial: Record<string, string> = {}): Storage {
   const data = new Map(Object.entries(initial))
@@ -91,5 +91,48 @@ describe('qualifiesAsBest', () => {
 
   it('rejects an equal time', () => {
     expect(qualifiesAsBest(record, { elapsedMs: 90_000, accuracy: 1 })).toBe(false)
+  })
+})
+
+const attackRecord: AttackBestRecord = { cpm: 46, accuracy: 0.95, recordedAt: '2026-09-11T00:00:00.000Z' }
+
+describe('attack bests', () => {
+  it('round trips by minutes and keeps other durations', () => {
+    const storage = fakeStorage()
+    saveAttackBest(1, attackRecord, storage)
+    saveAttackBest(3, { ...attackRecord, cpm: 40 }, storage)
+    expect(loadAttackBests(storage)).toEqual({ 1: attackRecord, 3: { ...attackRecord, cpm: 40 } })
+  })
+
+  it('uses its own key', () => {
+    const storage = fakeStorage()
+    saveAttackBest(2, attackRecord, storage)
+    expect(storage.getItem(ATTACK_STORAGE_KEY)).not.toBeNull()
+    expect(storage.getItem('cangjie-trainer:bests')).toBeNull()
+  })
+
+  it('drops malformed entries and survives corrupt JSON and throwing storage', () => {
+    expect(loadAttackBests(fakeStorage({ [ATTACK_STORAGE_KEY]: '{oops' }))).toEqual({})
+    const stored = JSON.stringify({ 1: attackRecord, 2: { cpm: 'fast' }, 3: null })
+    expect(loadAttackBests(fakeStorage({ [ATTACK_STORAGE_KEY]: stored }))).toEqual({ 1: attackRecord })
+    expect(loadAttackBests(throwingStorage())).toEqual({})
+    expect(() => saveAttackBest(1, attackRecord, throwingStorage())).not.toThrow()
+  })
+})
+
+describe('qualifiesAsAttackBest', () => {
+  it('accepts the first accurate run with something typed', () => {
+    expect(qualifiesAsAttackBest(undefined, { cpm: 30, accuracy: 0.9, typedCount: 30 })).toBe(true)
+  })
+
+  it('rejects an empty or sloppy run', () => {
+    expect(qualifiesAsAttackBest(undefined, { cpm: 0, accuracy: 0, typedCount: 0 })).toBe(false)
+    expect(qualifiesAsAttackBest(undefined, { cpm: 50, accuracy: 0.89, typedCount: 50 })).toBe(false)
+  })
+
+  it('needs a strictly higher cpm than the record', () => {
+    expect(qualifiesAsAttackBest(attackRecord, { cpm: 47, accuracy: 1, typedCount: 47 })).toBe(true)
+    expect(qualifiesAsAttackBest(attackRecord, { cpm: 46, accuracy: 1, typedCount: 46 })).toBe(false)
+    expect(qualifiesAsAttackBest(attackRecord, { cpm: 45, accuracy: 1, typedCount: 45 })).toBe(false)
   })
 })
