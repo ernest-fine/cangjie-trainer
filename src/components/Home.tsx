@@ -1,5 +1,6 @@
 import { SETS, SET_SIZE } from '../data/sets'
 import { formatTime } from '../lib/scoring'
+import { STRINGS } from '../lib/strings'
 import type { Bests, Mode } from '../lib/types'
 import { Button } from './Button'
 import styles from './Home.module.css'
@@ -13,45 +14,40 @@ export function Home({ bests, onStart }: HomeProps) {
   return (
     <main className={styles.screen}>
       <header className={styles.header}>
-        <h1 className={styles.title}>Cangjie Trainer</h1>
-        <p className={styles.subtitle}>
-          <span lang="zh-Hant">倉頡練習</span> · Retype the most common characters of Hong Kong written Chinese and
-          Cantonese.
-        </p>
+        <h1 className={styles.title}>{STRINGS.appTitle}</h1>
+        <p className={styles.subtitle}>{STRINGS.subtitle}</p>
       </header>
       <div className={styles.grid}>
         {SETS.map((set, i) => {
           const best = bests[i]
-          const rangeStart = i * SET_SIZE + 1
-          const rangeEnd = (i + 1) * SET_SIZE
           return (
             <article key={i} className={styles.card} aria-labelledby={`set-${i + 1}-title`}>
               <div className={styles.cardHead}>
-                <h2 id={`set-${i + 1}-title`} className={styles.setName}>Set {i + 1}</h2>
-                <span className={styles.range}>
-                  {rangeStart} to {rangeEnd}
-                </span>
+                <h2 id={`set-${i + 1}-title`} className={styles.setName}>
+                  {STRINGS.setName(i + 1)}
+                </h2>
+                <span className={styles.range}>{STRINGS.setRange(i * SET_SIZE + 1, (i + 1) * SET_SIZE)}</span>
               </div>
               <div className={styles.preview} aria-hidden="true">
                 {set.slice(0, 8).join('')}
               </div>
               <div className={styles.best}>
-                <span className={styles.bestLabel}>Best</span>
+                <span className={styles.bestLabel}>{STRINGS.bestLabel}</span>
                 {best ? (
                   <>
                     <span>{formatTime(best.bestMs)}</span>
                     <span>{Math.round(best.accuracy * 100)}%</span>
                   </>
                 ) : (
-                  <span>—</span>
+                  <span>{STRINGS.noBest}</span>
                 )}
               </div>
               <div className={styles.actions}>
                 <Button variant="primary" onClick={() => onStart(i, 'timed')}>
-                  Timed
+                  {STRINGS.timed}
                 </Button>
                 <Button variant="secondary" onClick={() => onStart(i, 'free')}>
-                  Free
+                  {STRINGS.free}
                 </Button>
               </div>
             </article>

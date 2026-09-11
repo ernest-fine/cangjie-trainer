@@ -1,6 +1,7 @@
 import type { CompositionEvent, FormEvent, RefObject } from 'react'
 import { useRef } from 'react'
 import { hanCharacters } from '../lib/scoring'
+import { STRINGS } from '../lib/strings'
 import styles from './DrillInput.module.css'
 
 interface DrillInputProps {
@@ -63,9 +64,8 @@ export function DrillInput({ onValue, inputRef, disabled }: DrillInputProps) {
       autoCapitalize="off"
       spellCheck={false}
       disabled={disabled}
-      placeholder="在此輸入"
-      lang="zh-Hant"
-      aria-label="Type the characters shown above"
+      placeholder={STRINGS.placeholder}
+      aria-label={STRINGS.inputLabel}
       onInput={handleInput}
       onCompositionStart={handleCompositionStart}
       onCompositionEnd={handleCompositionEnd}

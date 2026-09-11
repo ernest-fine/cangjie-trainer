@@ -30,8 +30,6 @@
 .mode {
   font-size: 0.85rem;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
 }
 
 .clock {

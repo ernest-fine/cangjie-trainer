@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useDrill } from '../hooks/useDrill'
 import { missedCharacters } from '../lib/scoring'
+import { STRINGS } from '../lib/strings'
 import type { Mode, RunResult } from '../lib/types'
 import { Button } from './Button'
 import { CharacterGrid } from './CharacterGrid'
@@ -44,8 +45,8 @@ export function Drill({ setIndex, mode, order, onFinish, onBack, now }: DrillPro
     <main className={styles.screen} onClick={focusInput}>
       <header className={styles.bar}>
         <div className={styles.title}>
-          <span className={styles.setName}>Set {setIndex + 1}</span>
-          <span className={styles.mode}>{mode === 'timed' ? 'Timed' : 'Free'}</span>
+          <span className={styles.setName}>{STRINGS.setName(setIndex + 1)}</span>
+          <span className={styles.mode}>{mode === 'timed' ? STRINGS.timed : STRINGS.free}</span>
         </div>
         {mode === 'timed' && (
           <span className={styles.clock}>
@@ -53,23 +54,23 @@ export function Drill({ setIndex, mode, order, onFinish, onBack, now }: DrillPro
           </span>
         )}
         <Button variant="secondary" onClick={drill.scramble}>
-          Scramble
+          {STRINGS.scramble}
         </Button>
         <Button variant="secondary" onClick={drill.restart}>
-          Restart
+          {STRINGS.restart}
         </Button>
         <Button variant="ghost" onClick={onBack}>
-          Back
+          {STRINGS.back}
         </Button>
       </header>
 
       <CharacterGrid order={drill.order} states={drill.states} />
 
-      <p className={styles.hint}>Switch your keyboard to Cangjie</p>
+      <p className={styles.hint}>{STRINGS.hint}</p>
 
       <DrillInput key={drill.runId} onValue={drill.onInput} inputRef={inputRef} disabled={drill.isDone} />
 
-      {mode === 'free' && drill.isDone && <p className={styles.done}>Done</p>}
+      {mode === 'free' && drill.isDone && <p className={styles.done}>{STRINGS.done}</p>}
     </main>
   )
 }

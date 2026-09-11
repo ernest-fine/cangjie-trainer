@@ -6,8 +6,8 @@ import { Button } from './Button'
 describe('Button', () => {
   it('renders its label and handles clicks', async () => {
     const onClick = vi.fn()
-    render(<Button onClick={onClick}>Timed</Button>)
-    await userEvent.click(screen.getByRole('button', { name: 'Timed' }))
+    render(<Button onClick={onClick}>Click</Button>)
+    await userEvent.click(screen.getByRole('button', { name: 'Click' }))
     expect(onClick).toHaveBeenCalledTimes(1)
   })
 

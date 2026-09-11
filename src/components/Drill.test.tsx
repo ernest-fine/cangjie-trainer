@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
+import { STRINGS } from '../lib/strings'
 import { Drill } from './Drill'
 
 const order = Array.from({ length: 100 }, (_, i) => String.fromCodePoint(0x4e00 + i))
@@ -14,9 +15,9 @@ function typeCommitted(value: string) {
 describe('Drill', () => {
   it('shows the hint, set name, and mode', () => {
     render(<Drill setIndex={2} mode="timed" order={order} onFinish={() => {}} onBack={() => {}} />)
-    expect(screen.getByText('Switch your keyboard to Cangjie')).toBeInTheDocument()
-    expect(screen.getByText('Set 3')).toBeInTheDocument()
-    expect(screen.getByText('Timed')).toBeInTheDocument()
+    expect(screen.getByText(STRINGS.hint)).toBeInTheDocument()
+    expect(screen.getByText(STRINGS.setName(3))).toBeInTheDocument()
+    expect(screen.getByText(STRINGS.timed)).toBeInTheDocument()
   })
 
   it('calls onFinish with the result when a timed run completes', () => {
@@ -51,7 +52,7 @@ describe('Drill', () => {
     render(<Drill setIndex={0} mode="free" order={order} onFinish={onFinish} onBack={() => {}} />)
     typeCommitted(order.join(''))
     expect(onFinish).not.toHaveBeenCalled()
-    expect(screen.getByText('Done')).toBeInTheDocument()
+    expect(screen.getByText(STRINGS.done)).toBeInTheDocument()
   })
 
   it('hides the clock in free mode', () => {
@@ -62,14 +63,14 @@ describe('Drill', () => {
   it('restart clears the input', async () => {
     render(<Drill setIndex={0} mode="free" order={order} onFinish={() => {}} onBack={() => {}} />)
     typeCommitted('錯')
-    await userEvent.click(screen.getByRole('button', { name: 'Restart' }))
+    await userEvent.click(screen.getByRole('button', { name: STRINGS.restart }))
     expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('')
   })
 
   it('back button calls onBack', async () => {
     const onBack = vi.fn()
     render(<Drill setIndex={0} mode="free" order={order} onFinish={() => {}} onBack={onBack} />)
-    await userEvent.click(screen.getByRole('button', { name: 'Back' }))
+    await userEvent.click(screen.getByRole('button', { name: STRINGS.back }))
     expect(onBack).toHaveBeenCalled()
   })
 

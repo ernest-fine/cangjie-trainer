@@ -13,7 +13,7 @@ interface CharacterGridProps {
  */
 export function CharacterGrid({ order, states }: CharacterGridProps) {
   return (
-    <div className={styles.grid} aria-hidden="true" lang="zh-Hant">
+    <div className={styles.grid} aria-hidden="true">
       {order.map((ch, i) => (
         <span key={i} className={styles.glyph} data-state={states[i]}>
           {ch}
