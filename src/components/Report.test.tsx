@@ -40,6 +40,7 @@ describe('Report', () => {
     expect(items[0]).toHaveTextContent('嗰')
     expect(items[0]).toHaveTextContent('口人田口')
     expect(items[0]).toHaveTextContent('ROWR')
+    expect(items[0].textContent).toBe('嗰口人田口ROWR')
     expect(items[1]).toHaveTextContent('廿日十')
     expect(items[1]).toHaveTextContent('TAJ')
   })

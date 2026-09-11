@@ -28,7 +28,7 @@ Regenerate the list with:
 
     npm run build:characters
 
-The script downloads both sources into `data-sources/` (git-ignored), extracts the corpus with the system `unzip` command, and rewrites `src/data/sets.ts`. It normalizes a few HKCanCor transcription conventions to the characters people type (for example 哩 to 呢, 揾 to 搵) and skips two paralinguistic fillers; the table is in the script.
+This runs two scripts. The first downloads both corpora (about 2.5 MB) into `data-sources/` (git-ignored), extracts the HKCanCor zip with the system `unzip` command, and rewrites `src/data/sets.ts`. The second downloads the Unicode Unihan database (about 8.5 MB) into the same cache and rewrites `src/data/cangjie.ts`. Downloads are skipped when the cached files exist; delete `data-sources/` to refresh them. It normalizes a few HKCanCor transcription conventions to the characters people type (for example 哩 to 呢, 揾 to 搵) and skips two paralinguistic fillers; the table is in the script.
 
 HKCanCor is released under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). The character list is a derived work: the corpus was normalized as described above and blended with the written-Chinese counts. Citation: Luke, K. K. and Wong, M. L. Y. (2015). The Hong Kong Cantonese Corpus: Design and Uses. Journal of Chinese Linguistics.
 

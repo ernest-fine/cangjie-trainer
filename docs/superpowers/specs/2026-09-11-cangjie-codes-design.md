@@ -17,9 +17,9 @@ When the report lists a missed character, the learner should see how to type it:
   1. Imports the current character list by reading `src/data/sets.ts` and extracting the ten string literals (no TypeScript execution needed).
   2. Downloads `Unihan.zip` into `data-sources/` if absent; extracts `Unihan_DictionaryLikeData.txt` there.
   3. Parses lines matching `U+XXXX\tkCangjie\tCODE`.
-  4. Writes `src/data/cangjie.ts` exporting `CANGJIE: Readonly<Record<string, string>>` with an entry for each of the 1000 characters, keys in set order, values uppercase letters A to Z.
+  4. Writes `src/data/cangjie.ts` exporting `CANGJIE: Readonly<Record<string, string>>` with an entry for each of the 1000 characters, values uppercase letters A to Z. Keys are written in set order for stable diffs; nothing depends on that order.
   5. Fails with a clear message, writing nothing, if any set character has no code or a code contains anything but A to Z.
-- `package.json`: `build:cangjie` runs the script; `build:characters` becomes `node scripts/build-characters.mjs && node scripts/build-cangjie.mjs` so the two files cannot drift.
+- `package.json`: `build:cangjie` runs the script; `build:characters` becomes `node scripts/build-characters.mjs && node scripts/build-cangjie.mjs`. If the second script fails after the first succeeds, the data test for the code table fails on the next `npm test`, so drift is caught rather than prevented.
 - License: the README's "Character data" section gains a Unicode notice: "Cangjie codes are from the Unicode Unihan database, © Unicode, Inc., used under the Unicode License v3 (https://www.unicode.org/license.txt)."
 
 ### Radicals
@@ -33,9 +33,9 @@ When the report lists a missed character, the learner should see how to type it:
 
 - Each missed character renders as a card in the existing missed list (`<ul>` with `<li>` per character), in set order, deduplicated as today:
   - the character, large, in `--font-cjk`
-  - the radicals below it, in `--font-cjk`, muted colour
+  - the radicals below it, in `--font-cjk`, normal text colour (muted text fails contrast on a tinted card)
   - the key letters below that, in `--font-mono`, smaller
-- The card has an accessible name of the form `嗰 口人田口 ROWR` (the three texts in reading order; no `aria-label` needed).
+- The three texts are ordinary content in reading order, so assistive technology reads `嗰 口人田口 ROWR` as it traverses the item. List items do not take a name from their content, and no `aria-label` is added.
 - The 錯字 heading and the 全部正確 empty state are unchanged.
 - The list wraps; on narrow screens cards stay at least 5.5rem wide so the radicals do not wrap mid-code.
 

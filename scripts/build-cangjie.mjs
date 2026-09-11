@@ -5,7 +5,8 @@
  * database (field kCangjie).
  *
  * Usage: npm run build:cangjie   (also run by npm run build:characters)
- * The Unihan zip is cached in data-sources/ (git-ignored).
+ * The Unihan zip and the extracted text file are cached in data-sources/
+ * (git-ignored). Delete both to pick up a new Unihan release.
  */
 import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -86,6 +87,7 @@ async function main() {
   const entries = chars.map((ch) => [ch, codes.get(ch)])
   writeFileSync(OUTPUT, render(entries))
   console.log(`wrote ${OUTPUT} with ${entries.length} codes`)
+  // Spot check, mirrored by src/data/cangjie.test.ts.
   for (const ch of '嗰草係') console.log(`${ch}: ${codes.get(ch)}`)
 }
 

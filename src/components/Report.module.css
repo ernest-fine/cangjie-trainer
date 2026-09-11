@@ -100,7 +100,8 @@
   min-width: 5.5rem;
   padding: 0.6rem 0.5rem 0.5rem;
   border-radius: var(--radius-sm);
-  background: var(--wrong-soft);
+  background: var(--surface);
+  border: 1px solid var(--border);
 }
 
 .missedGlyph {
@@ -114,7 +115,7 @@
   font-family: var(--font-cjk);
   font-size: 0.95rem;
   line-height: 1.2;
-  color: var(--text-muted);
+  color: var(--text);
   white-space: nowrap;
 }
 
