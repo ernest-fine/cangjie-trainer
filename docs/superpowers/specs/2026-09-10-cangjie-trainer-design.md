@@ -103,7 +103,7 @@ Single-page Vite + React + TypeScript app. No router. One top-level `screen` sta
 4. When `typed.length === 100`, set `endedAt`. Drill calls `onFinish(result)`. App stores the best if it qualifies and switches to Report.
 5. Report renders numbers from `result`. Retry returns to Drill with the same order. Retry scrambled returns with `scramble` applied. Back returns to Home.
 
-`useDrill` computes "newly wrong positions" by comparing only the suffix that changed between the previous and current typed values, so a backspace followed by a correct retype adds nothing, and a backspace followed by another wrong character adds one.
+`useDrill` derives `wrongPositions` from the current typed value on every render, so a corrected mistake disappears from it and only positions still wrong at the end count.
 
 ## Error handling
 
