@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ATTACK_ORDER_LENGTH, randomOrder, windowStart } from './attack'
+import { ATTACK_ORDER_LENGTH, attackCpm, randomOrder, windowStart } from './attack'
 
 const pool = [...'的一是不了在人有我他']
 
@@ -18,7 +18,7 @@ describe('randomOrder', () => {
     for (const ch of order) expect(pool).toContain(ch)
   })
 
-  it('defaults to 600 characters', () => {
+  it('defaults to ATTACK_ORDER_LENGTH characters', () => {
     expect(randomOrder(pool, undefined, seeded(2))).toHaveLength(ATTACK_ORDER_LENGTH)
   })
 
@@ -39,6 +39,13 @@ describe('randomOrder', () => {
 
   it('uses more than a handful of the pool', () => {
     expect(new Set(randomOrder(pool, 100, seeded(5))).size).toBeGreaterThan(5)
+  })
+})
+
+describe('attackCpm', () => {
+  it('divides correct characters by the time actually run', () => {
+    expect(attackCpm({ elapsedMs: 120_000, correctCount: 137 })).toBe(69)
+    expect(attackCpm({ elapsedMs: 30_000, correctCount: 60 })).toBe(120)
   })
 })
 

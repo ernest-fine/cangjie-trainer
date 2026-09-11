@@ -127,6 +127,7 @@ describe('qualifiesAsAttackBest', () => {
 
   it('rejects an empty or sloppy run', () => {
     expect(qualifiesAsAttackBest(undefined, { cpm: 0, accuracy: 0, typedCount: 0 })).toBe(false)
+    expect(qualifiesAsAttackBest(undefined, { cpm: 0, accuracy: 1, typedCount: 1 })).toBe(false)
     expect(qualifiesAsAttackBest(undefined, { cpm: 50, accuracy: 0.89, typedCount: 50 })).toBe(false)
   })
 

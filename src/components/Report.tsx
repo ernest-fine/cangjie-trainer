@@ -1,4 +1,5 @@
 import { CANGJIE } from '../data/cangjie'
+import { attackCpm } from '../lib/attack'
 import { radicalsFor } from '../lib/cangjie'
 import { accuracy, charsPerMinute, formatTime } from '../lib/scoring'
 import { STRINGS } from '../lib/strings'
@@ -20,7 +21,7 @@ export interface ReportProps {
 export function Report({ result, isNewBest, previousBestText, onRetry, onRetryScrambled, onBack }: ReportProps) {
   const attack = result.kind === 'attack'
   const minutes = Math.round(result.durationMs / 60_000)
-  const cpm = attack ? charsPerMinute(result.durationMs, result.correctCount) : charsPerMinute(result.elapsedMs, result.typedCount)
+  const cpm = attack ? attackCpm(result) : charsPerMinute(result.elapsedMs, result.typedCount)
   const acc = Math.round(accuracy(result.wrongCount, result.typedCount) * 100)
 
   let recordText: string

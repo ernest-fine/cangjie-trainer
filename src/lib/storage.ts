@@ -120,7 +120,7 @@ export function qualifiesAsAttackBest(
   existing: AttackBestRecord | undefined,
   candidate: { cpm: number; accuracy: number; typedCount: number },
 ): boolean {
-  if (candidate.typedCount <= 0) return false
+  if (candidate.typedCount <= 0 || candidate.cpm <= 0) return false
   if (candidate.accuracy < MIN_BEST_ACCURACY) return false
   if (!existing) return true
   return candidate.cpm > existing.cpm

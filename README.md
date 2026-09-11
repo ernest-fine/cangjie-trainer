@@ -5,6 +5,7 @@ Practice the Cangjie input method by retyping the 1000 most common characters of
 - Ten frequency sets, each 100 characters
 - Timed mode with a stopwatch and a characters-per-minute report
 - Free mode with no clock
+- 限時挑戰: a 1, 2, or 3 minute countdown over random characters from the whole list, scored by characters per minute, with a personal best per duration
 - Scramble the order so you learn the characters, not the sequence
 - Personal bests saved in your browser
 

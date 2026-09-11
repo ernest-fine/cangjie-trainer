@@ -12,9 +12,9 @@ A countdown mode: type as many characters as possible in 1, 2, or 3 minutes, dra
 
 ### Starting a run
 
-- Home gains a card 限時挑戰 with three buttons 1 分鐘, 2 分鐘, 3 分鐘. Under each button the personal best for that duration, as `NN 每分鐘字數 · NN%`, or — when none.
+- Home gains a card 限時挑戰 with three buttons 1 分鐘, 2 分鐘, 3 分鐘. Beside each button (wrapping beneath it on narrow screens) the personal best for that duration, as `NN 每分鐘字數 · NN%`, or — when none.
 - `Mode` becomes `'timed' | 'free' | 'attack'`. Starting an attack passes `durationMs` (60 000, 120 000, or 180 000) and a freshly drawn order.
-- The order is 600 characters drawn uniformly at random from `SETS.flat()` with an injectable rng, rejecting any draw equal to the previous character. 600 exceeds any plausible three-minute count; if the order is ever exhausted the run ends as a set would.
+- The order is 900 characters drawn uniformly at random from `SETS.flat()` with an injectable rng, never the same character twice in a row. 900 is 300 characters per minute for three minutes, beyond any Cangjie typist; if the order is ever exhausted the run ends as a set would and is scored over the time actually run.
 
 ### Hook (`useDrill`)
 
@@ -50,14 +50,14 @@ Set runs fill `kind: 'set'`, `durationMs: 0`, `typedCount: 100`.
 
 ### Scoring and report
 
-- Characters per minute: sets keep `charsPerMinute(elapsedMs, 100)`; attacks use `charsPerMinute(durationMs, correctCount)`.
+- Characters per minute: sets keep `charsPerMinute(elapsedMs, 100)`; attacks use `attackCpm(result)` = `charsPerMinute(elapsedMs, correctCount)`, where `elapsedMs` equals the duration when the countdown ended the run and is shorter only when the order was exhausted. One helper serves both the report and the personal best.
 - Accuracy: `accuracy(wrongCount, typedCount)`; for a set `typedCount` is 100 so nothing changes. If `typedCount` is 0, accuracy is 0.
 - Report heading: sets 第 N 組完成; attacks 限時挑戰 · N 分鐘. The 時間 stat shows `formatTime(elapsedMs)` for sets and, for attacks, 打對 with the value `NN 字`. The record stat and the missed list with Cangjie codes are unchanged. Retry restarts the same attack with a new random order; 打亂後再試 is hidden for attacks (it would be redundant); 返回選單 as today.
 
 ### Personal bests
 
 - New storage key `cangjie-trainer:attack-bests`, a map from minutes (1, 2, 3) to `{ cpm: number, accuracy: number, recordedAt: string }`, validated on read like set bests.
-- `qualifiesAsAttackBest(existing, candidate)`: accuracy at least 0.9 and `cpm` strictly greater than the existing `cpm` (any qualifying run when none exists). A run with `typedCount` 0 never qualifies.
+- `qualifiesAsAttackBest(existing, candidate)`: accuracy at least 0.9 and `cpm` strictly greater than the existing `cpm` (any qualifying run when none exists). A run with `typedCount` 0 or `cpm` 0 never qualifies, matching what the read-side validator accepts.
 - App loads both maps on startup and passes attack bests to Home.
 
 ### Strings

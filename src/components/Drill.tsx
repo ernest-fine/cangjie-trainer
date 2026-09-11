@@ -146,8 +146,9 @@ export function Drill({ setIndex, mode, order, durationMs, onFinish, onBack, now
   const focusInput = () => inputRef.current?.focus()
 
   const handleInput = (value: string, isComposing: boolean) => {
-    onInput(value, isComposing)
+    // End the run first so a character committed after zero is not scored.
     if (attack) expire()
+    onInput(value, isComposing)
   }
 
   // Attack mode shows a rolling three-row window; sets show everything.

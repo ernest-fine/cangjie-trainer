@@ -3,8 +3,8 @@ import { Drill } from './components/Drill'
 import { Home } from './components/Home'
 import { Report } from './components/Report'
 import { SETS } from './data/sets'
-import { randomOrder } from './lib/attack'
-import { accuracy, charsPerMinute, formatTime, shuffle } from './lib/scoring'
+import { attackCpm, randomOrder } from './lib/attack'
+import { accuracy, formatTime, shuffle } from './lib/scoring'
 import {
   loadAttackBests,
   loadBests,
@@ -51,7 +51,7 @@ export default function App() {
       if (result.kind === 'attack') {
         const minutes = Math.round(result.durationMs / 60_000)
         const previous = attackBests[minutes]
-        const cpm = charsPerMinute(result.durationMs, result.correctCount)
+        const cpm = attackCpm(result)
         const acc = accuracy(result.wrongCount, result.typedCount)
         const isNewBest = qualifiesAsAttackBest(previous, { cpm, accuracy: acc, typedCount: result.typedCount })
         if (isNewBest) {
