@@ -63,8 +63,16 @@ export function useDrill(initialOrder: string[], options: UseDrillOptions = {}):
 
   const onInput = useCallback(
     (value: string, isComposing: boolean) => {
-      if (isComposing) return
       const t = now()
+      if (isComposing) {
+        // The first keystroke of a composition starts the clock; the text is
+        // not scored until it commits.
+        setState((prev) => {
+          if (prev.startedAt !== null || prev.endedAt !== null || prev.pausedAt !== null) return prev
+          return { ...prev, startedAt: t }
+        })
+        return
+      }
       setState((prev) => {
         if (prev.endedAt !== null || prev.pausedAt !== null) return prev
         const capped = [...hanCharacters(value)].slice(0, prev.order.length).join('')

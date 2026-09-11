@@ -22,7 +22,7 @@ The learning loop: pick a frequency set, type it, see which characters were miss
 
 Both modes use the same drill screen.
 
-- **Timed.** A stopwatch starts on the first committed character and stops when the 100th position is filled. A report follows.
+- **Timed.** A stopwatch starts on the first keystroke and stops when the 100th position is filled. A report follows.
 - **Free.** Same drill with no clock and no report. When all 100 positions are filled the screen shows a small done mark and offers restart.
 
 ### Drill behavior
@@ -46,7 +46,7 @@ Both modes use the same drill screen.
 
 ### Timing and scoring
 
-- Start time is recorded on the first committed character in timed mode. End time is recorded when the typed length reaches 100.
+- Start time is recorded on the first keystroke in timed mode, including the first radical of a composition that has not yet committed, so the time spent composing the first character counts. End time is recorded when the typed length reaches 100.
 - The visible clock ticks on an interval and is display-only. Elapsed time in the report is `end - start` in milliseconds.
 - Characters per minute = `100 / (elapsedMs / 60000)`, rounded to a whole number.
 - Accuracy = `(100 - wrongCount) / 100` where `wrongCount` is the number of positions still wrong at the end, shown as a percentage with no decimals.

@@ -18,14 +18,25 @@ describe('useDrill', () => {
     expect(result.current.isDone).toBe(false)
   })
 
-  it('ignores input while composing', () => {
+  it('does not score input while composing', () => {
     const { result } = renderHook(() => useDrill(order))
     act(() => result.current.onInput('x', true))
     expect(result.current.typed).toBe('')
-    expect(result.current.startedAt).toBeNull()
   })
 
-  it('starts the clock on the first committed character', () => {
+  it('starts the clock on the first keystroke, even mid-composition', () => {
+    const clock = fakeClock(5000)
+    const { result } = renderHook(() => useDrill(order, { now: clock.now }))
+    act(() => result.current.onInput('口', true))
+    expect(result.current.startedAt).toBe(5000)
+    expect(result.current.isRunning).toBe(true)
+    clock.advance(700)
+    act(() => result.current.onInput(order[0], false))
+    expect(result.current.startedAt).toBe(5000)
+    expect(result.current.elapsedMs()).toBe(700)
+  })
+
+  it('starts the clock on a committed character when there was no composition', () => {
     const clock = fakeClock(5000)
     const { result } = renderHook(() => useDrill(order, { now: clock.now }))
     act(() => result.current.onInput(order[0], false))
@@ -33,6 +44,15 @@ describe('useDrill', () => {
     clock.advance(100)
     act(() => result.current.onInput(order[0] + order[1], false))
     expect(result.current.startedAt).toBe(5000)
+  })
+
+  it('does not start the clock from a composition while paused or after the end', () => {
+    const clock = fakeClock(0)
+    const { result } = renderHook(() => useDrill(order, { now: clock.now }))
+    act(() => result.current.onInput(order.join(''), false))
+    expect(result.current.isDone).toBe(true)
+    act(() => result.current.onInput('口', true))
+    expect(result.current.startedAt).toBe(0)
   })
 
   it('reports wrong positions and forgives them once fixed', () => {
