@@ -1,0 +1,202 @@
+#!/usr/bin/env node
+/**
+ * Regenerates src/data/sets.ts from two corpora, blended at equal weight:
+ *
+ *   Written: 八、九十年代香港字頻統計 — CUHK Chinese Character Frequency
+ *            Statistics for Hong Kong, Mainland China and Taiwan.
+ *            https://humanum.arts.cuhk.edu.hk/Lexis/chifreq/
+ *   Spoken:  Hong Kong Cantonese Corpus (HKCanCor), Luke & Wong (2015),
+ *            CC BY 4.0. https://github.com/fcbond/hkcancor
+ *
+ * Usage: npm run build:characters
+ * Downloads are cached in data-sources/ (git-ignored); re-runs are offline.
+ */
+import { execFileSync } from 'node:child_process'
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
+const DATA_DIR = join(ROOT, 'data-sources')
+const OUTPUT = join(ROOT, 'src', 'data', 'sets.ts')
+
+const WRITTEN_URL =
+  'https://humanum.arts.cuhk.edu.hk/Lexis/chifreq/chifreq.php?year=90&place=hk&sort=no&method=1'
+const SPOKEN_URL = 'https://raw.githubusercontent.com/fcbond/hkcancor/master/data/hkcancor-utf8.zip'
+
+const WRITTEN_WEIGHT = 0.5
+const SPOKEN_WEIGHT = 0.5
+const SET_SIZE = 100
+const SET_COUNT = 10
+const TOTAL = SET_SIZE * SET_COUNT
+
+/**
+ * Transcription conventions in HKCanCor mapped to the forms people type.
+ * The corpus spells several particles and pronouns by one fixed character
+ * per Jyutping syllable; typed Cantonese uses different characters.
+ */
+const NORMALIZE = new Map([
+  ['噉', '咁'], // gam2
+  ['囖', '囉'], // lo1
+  ['𡃉', '㗎'], // gaa3
+  ['哩', '呢'], // ni1, as in 哩個 → 呢個
+  ['揾', '搵'], // wan2
+  ['吖', '呀'], // aa1
+  ['喇', '啦'], // laa1
+  ['嚹', '喇'], // laa3
+])
+
+/**
+ * Paralinguistic fillers the transcribers wrote as characters (a backchannel
+ * "haak6" and a hesitation "e6"). Nobody types them, so they are not counted.
+ */
+const EXCLUDE_SPOKEN = new Set(['喀', '誒'])
+
+const MIN_WRITTEN_CHARS = 3000
+const MIN_TRANSCRIPTS = 50
+
+const HAN = /^\p{Script=Han}$/u
+
+function fail(message) {
+  console.error(`build-characters: ${message}`)
+  process.exit(1)
+}
+
+async function download(url, dest) {
+  if (existsSync(dest)) return
+  console.log(`downloading ${url}`)
+  const res = await fetch(url)
+  if (!res.ok) fail(`download failed: ${res.status} ${res.statusText} for ${url}`)
+  writeFileSync(dest, Buffer.from(await res.arrayBuffer()))
+}
+
+/** Character -> raw count from the CUHK Big5 HTML table. */
+function parseWritten(html) {
+  const counts = new Map()
+  for (const row of html.split(/<tr[^>]*>/i).slice(1)) {
+    const cells = [...row.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)].map((m) =>
+      m[1].replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim(),
+    )
+    if (cells.length < 5) continue
+    const ch = cells[0]
+    const count = Number(cells[4])
+    if ([...ch].length === 1 && HAN.test(ch) && Number.isFinite(count)) {
+      counts.set(ch, (counts.get(ch) ?? 0) + count)
+    }
+  }
+  return counts
+}
+
+/** Character -> raw count from HKCanCor transcript files, after normalization. */
+function parseSpoken(dir) {
+  const files = readdirSync(dir).filter((f) => !f.includes('.'))
+  if (files.length < MIN_TRANSCRIPTS) fail(`expected at least ${MIN_TRANSCRIPTS} transcripts, found ${files.length}`)
+  const counts = new Map()
+  const token = /^\s*(\S+?)\/([A-Za-z0-9]+)\/[^/\n]*\/\s*$/gm
+  for (const file of files) {
+    const text = readFileSync(join(dir, file), 'utf8')
+    for (const m of text.matchAll(token)) {
+      const [, word, pos] = m
+      if (pos === 'w') continue
+      for (const raw of word) {
+        if (EXCLUDE_SPOKEN.has(raw)) continue
+        const ch = NORMALIZE.get(raw) ?? raw
+        if (HAN.test(ch)) counts.set(ch, (counts.get(ch) ?? 0) + 1)
+      }
+    }
+  }
+  return counts
+}
+
+/** Counts -> per-million rates. */
+function rates(counts) {
+  const total = [...counts.values()].reduce((a, b) => a + b, 0)
+  const out = new Map()
+  for (const [ch, n] of counts) out.set(ch, (n / total) * 1_000_000)
+  return out
+}
+
+function blend(written, spoken) {
+  const chars = new Set([...written.keys(), ...spoken.keys()])
+  const scored = []
+  for (const ch of chars) {
+    if (ch.codePointAt(0) > 0xffff) continue
+    const w = written.get(ch) ?? 0
+    const s = spoken.get(ch) ?? 0
+    scored.push({ ch, score: WRITTEN_WEIGHT * w + SPOKEN_WEIGHT * s, written: w })
+  }
+  scored.sort(
+    (a, b) => b.score - a.score || b.written - a.written || a.ch.codePointAt(0) - b.ch.codePointAt(0),
+  )
+  return scored.slice(0, TOTAL).map((x) => x.ch)
+}
+
+function render(chars) {
+  const lines = []
+  for (let i = 0; i < SET_COUNT; i++) {
+    const chunk = chars.slice(i * SET_SIZE, (i + 1) * SET_SIZE).join('')
+    lines.push(`  '${chunk}'${i < SET_COUNT - 1 ? ' +' : ''}`)
+  }
+  return `export const SET_SIZE = ${SET_SIZE}
+export const SET_COUNT = ${SET_COUNT}
+
+/**
+ * ${TOTAL} most frequent characters of Hong Kong written Chinese and spoken
+ * Cantonese, most frequent first. Generated by scripts/build-characters.mjs;
+ * do not edit by hand.
+ *
+ * Sources, blended at equal weight (${WRITTEN_WEIGHT} written, ${SPOKEN_WEIGHT} spoken)
+ * after converting each to per-million character rates:
+ *   Written: 八、九十年代香港字頻統計, CUHK Chinese Character Frequency Statistics
+ *            for Hong Kong, Mainland China and Taiwan,
+ *            https://humanum.arts.cuhk.edu.hk/Lexis/chifreq/
+ *   Spoken:  Hong Kong Cantonese Corpus (HKCanCor), Luke & Wong (2015), CC BY 4.0,
+ *            https://github.com/fcbond/hkcancor
+ * Spoken transcription conventions normalized before counting: 噉→咁, 囖→囉,
+ * 𡃉→㗎, 哩→呢, 揾→搵, 吖→呀, 喇→啦, 嚹→喇. The filler transcriptions 喀 and 誒
+ * are not counted. Characters outside the Basic Multilingual Plane are excluded.
+ */
+export const CHARACTERS =
+${lines.join('\n')}
+
+const all = [...CHARACTERS]
+
+export const SETS: string[][] = Array.from({ length: SET_COUNT }, (_, i) =>
+  all.slice(i * SET_SIZE, (i + 1) * SET_SIZE),
+)
+`
+}
+
+async function main() {
+  mkdirSync(DATA_DIR, { recursive: true })
+  const writtenFile = join(DATA_DIR, 'hk90.html')
+  const zipFile = join(DATA_DIR, 'hkcancor-utf8.zip')
+  const spokenDir = join(DATA_DIR, 'hkcancor', 'utf8')
+
+  await download(WRITTEN_URL, writtenFile)
+  await download(SPOKEN_URL, zipFile)
+  if (!existsSync(spokenDir)) {
+    execFileSync('unzip', ['-o', '-q', zipFile, '-d', join(DATA_DIR, 'hkcancor')], { stdio: 'inherit' })
+  }
+
+  const writtenHtml = new TextDecoder('big5').decode(readFileSync(writtenFile))
+  const writtenCounts = parseWritten(writtenHtml)
+  if (writtenCounts.size < MIN_WRITTEN_CHARS) {
+    fail(`expected at least ${MIN_WRITTEN_CHARS} written characters, parsed ${writtenCounts.size}`)
+  }
+  const spokenCounts = parseSpoken(spokenDir)
+
+  const chars = blend(rates(writtenCounts), rates(spokenCounts))
+  if (chars.length !== TOTAL) fail(`expected ${TOTAL} characters, got ${chars.length}`)
+  if (new Set(chars).size !== TOTAL) fail('duplicate characters in output')
+
+  writeFileSync(OUTPUT, render(chars))
+
+  console.log(`written corpus: ${writtenCounts.size} characters`)
+  console.log(`spoken corpus:  ${spokenCounts.size} characters`)
+  console.log(`first 20: ${chars.slice(0, 20).join('')}`)
+  for (const ch of '嘅唔係咗') console.log(`rank of ${ch}: ${chars.indexOf(ch) + 1}`)
+  console.log(`wrote ${OUTPUT}`)
+}
+
+main()

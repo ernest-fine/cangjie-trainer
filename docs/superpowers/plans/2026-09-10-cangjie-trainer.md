@@ -6,7 +6,7 @@
 
 **Architecture:** Vite + React + TypeScript with no router. Pure logic lives in `src/lib` (scoring, storage) and is fully unit tested. One hook, `useDrill`, owns the state of a run. Screens (Home, Drill, Report) are thin components; `App.tsx` switches between them and persists bests.
 
-**Tech Stack:** Vite 7, React 19, TypeScript, Vitest, jsdom, @testing-library/react, plain CSS with custom properties. No component library. Package manager: npm.
+**Tech Stack:** Vite 8, React 19, TypeScript, Vitest, jsdom, @testing-library/react, plain CSS with custom properties. No component library. Package manager: npm.
 
 **Spec:** `docs/superpowers/specs/2026-09-10-cangjie-trainer-design.md`
 

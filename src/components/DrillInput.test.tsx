@@ -1,0 +1,111 @@
+import { fireEvent, render, screen } from '@testing-library/react'
+import { createRef } from 'react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { DrillInput } from './DrillInput'
+
+describe('DrillInput', () => {
+  it('reports committed input with the composing flag', () => {
+    const onValue = vi.fn()
+    const ref = createRef<HTMLInputElement>()
+    render(<DrillInput onValue={onValue} inputRef={ref} />)
+    const input = screen.getByRole('textbox')
+    fireEvent.input(input, { target: { value: '的' }, isComposing: false })
+    expect(onValue).toHaveBeenLastCalledWith('的', false)
+  })
+
+  it('passes through isComposing true', () => {
+    const onValue = vi.fn()
+    const ref = createRef<HTMLInputElement>()
+    render(<DrillInput onValue={onValue} inputRef={ref} />)
+    const input = screen.getByRole('textbox')
+    fireEvent.input(input, { target: { value: 'a' }, isComposing: true })
+    expect(onValue).toHaveBeenLastCalledWith('a', true)
+  })
+
+  it('reports the value again on compositionend as committed', () => {
+    const onValue = vi.fn()
+    const ref = createRef<HTMLInputElement>()
+    render(<DrillInput onValue={onValue} inputRef={ref} />)
+    const input = screen.getByRole('textbox') as HTMLInputElement
+    input.value = '的一'
+    fireEvent.compositionEnd(input)
+    expect(onValue).toHaveBeenLastCalledWith('的一', false)
+  })
+
+  it('strips non-Han text the IME committed and reports the cleaned value', () => {
+    const onValue = vi.fn()
+    const ref = createRef<HTMLInputElement>()
+    render(<DrillInput onValue={onValue} inputRef={ref} />)
+    const input = screen.getByRole('textbox') as HTMLInputElement
+    input.value = '的mgmmju'
+    fireEvent.compositionEnd(input)
+    expect(onValue).toHaveBeenLastCalledWith('的', false)
+    expect(input.value).toBe('的')
+  })
+
+  it('strips stray Latin letters typed outside a composition', () => {
+    const onValue = vi.fn()
+    const ref = createRef<HTMLInputElement>()
+    render(<DrillInput onValue={onValue} inputRef={ref} />)
+    const input = screen.getByRole('textbox') as HTMLInputElement
+    fireEvent.input(input, { target: { value: '的a' }, isComposing: false })
+    expect(onValue).toHaveBeenLastCalledWith('的', false)
+    expect(input.value).toBe('的')
+  })
+
+  it('leaves the field alone while a composition is in progress', () => {
+    const onValue = vi.fn()
+    const ref = createRef<HTMLInputElement>()
+    render(<DrillInput onValue={onValue} inputRef={ref} />)
+    const input = screen.getByRole('textbox') as HTMLInputElement
+    fireEvent.compositionStart(input)
+    fireEvent.input(input, { target: { value: '的mg' }, isComposing: true })
+    expect(input.value).toBe('的mg')
+  })
+
+  it('exposes the element through inputRef', () => {
+    const ref = createRef<HTMLInputElement>()
+    render(<DrillInput onValue={() => {}} inputRef={ref} />)
+    expect(ref.current).toBeInstanceOf(HTMLInputElement)
+  })
+
+  describe('deferred re-read after compositionend', () => {
+    beforeEach(() => {
+      vi.useFakeTimers()
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('re-reports the same value once the timer fires', () => {
+      const onValue = vi.fn()
+      const ref = createRef<HTMLInputElement>()
+      render(<DrillInput onValue={onValue} inputRef={ref} />)
+      const input = screen.getByRole('textbox') as HTMLInputElement
+      input.value = '的一'
+      fireEvent.compositionEnd(input)
+      expect(onValue).toHaveBeenCalledTimes(1)
+
+      vi.advanceTimersByTime(0)
+
+      expect(onValue).toHaveBeenCalledTimes(2)
+      expect(onValue).toHaveBeenLastCalledWith('的一', false)
+    })
+
+    it('skips the deferred re-report when a new composition starts first', () => {
+      const onValue = vi.fn()
+      const ref = createRef<HTMLInputElement>()
+      render(<DrillInput onValue={onValue} inputRef={ref} />)
+      const input = screen.getByRole('textbox') as HTMLInputElement
+      input.value = '的一'
+      fireEvent.compositionEnd(input)
+      expect(onValue).toHaveBeenCalledTimes(1)
+
+      fireEvent.compositionStart(input)
+      vi.advanceTimersByTime(0)
+
+      expect(onValue).toHaveBeenCalledTimes(1)
+    })
+  })
+})
