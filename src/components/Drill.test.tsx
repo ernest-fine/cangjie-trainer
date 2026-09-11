@@ -91,4 +91,83 @@ describe('Drill', () => {
     expect(result.wrongTally).toBe(1)
     expect(result.missed).toEqual([order[10]])
   })
+
+  describe('pause', () => {
+    function setVisibility(state: 'hidden' | 'visible') {
+      Object.defineProperty(document, 'visibilityState', { value: state, configurable: true })
+      fireEvent(document, new Event('visibilitychange'))
+    }
+
+    it('has no pause control in free mode', () => {
+      render(<Drill setIndex={0} mode="free" order={order} onFinish={() => {}} onBack={() => {}} />)
+      expect(screen.queryByRole('button', { name: STRINGS.pause })).not.toBeInTheDocument()
+    })
+
+    it('is disabled until the first character commits', () => {
+      render(<Drill setIndex={0} mode="timed" order={order} onFinish={() => {}} onBack={() => {}} />)
+      expect(screen.getByRole('button', { name: STRINGS.pause })).toBeDisabled()
+      typeCommitted(order[0])
+      expect(screen.getByRole('button', { name: STRINGS.pause })).toBeEnabled()
+    })
+
+    it('pausing hides the grid, disables the input, and resuming restores and focuses it', async () => {
+      render(<Drill setIndex={0} mode="timed" order={order} onFinish={() => {}} onBack={() => {}} />)
+      typeCommitted(order[0])
+      await userEvent.click(screen.getByRole('button', { name: STRINGS.pause }))
+      expect(screen.getByText(STRINGS.paused)).toBeInTheDocument()
+      expect(document.querySelectorAll('[data-state]')).toHaveLength(0)
+      expect(screen.getByRole('textbox')).toBeDisabled()
+      await userEvent.click(screen.getByRole('dialog').querySelector('button')!)
+      expect(screen.queryByText(STRINGS.paused)).not.toBeInTheDocument()
+      expect(document.querySelectorAll('[data-state]')).toHaveLength(100)
+      expect(screen.getByRole('textbox')).toBeEnabled()
+      expect(screen.getByRole('textbox')).toHaveFocus()
+    })
+
+    it('excludes paused time from the reported result', async () => {
+      let t = 0
+      const onFinish = vi.fn()
+      render(<Drill setIndex={0} mode="timed" order={order} onFinish={onFinish} onBack={() => {}} now={() => t} />)
+      typeCommitted(order[0])
+      t = 1000
+      await userEvent.click(screen.getByRole('button', { name: STRINGS.pause }))
+      t = 61_000
+      await userEvent.click(screen.getAllByRole('button', { name: STRINGS.resume })[0])
+      t = 62_000
+      typeCommitted(order.join(''))
+      expect(onFinish.mock.calls[0][0].elapsedMs).toBe(2000)
+    })
+
+    it('escape toggles pause and resume', () => {
+      render(<Drill setIndex={0} mode="timed" order={order} onFinish={() => {}} onBack={() => {}} />)
+      typeCommitted(order[0])
+      fireEvent.keyDown(document, { key: 'Escape' })
+      expect(screen.getByText(STRINGS.paused)).toBeInTheDocument()
+      fireEvent.keyDown(document, { key: 'Escape' })
+      expect(screen.queryByText(STRINGS.paused)).not.toBeInTheDocument()
+    })
+
+    it('escape during an IME composition does nothing', () => {
+      render(<Drill setIndex={0} mode="timed" order={order} onFinish={() => {}} onBack={() => {}} />)
+      typeCommitted(order[0])
+      fireEvent.keyDown(document, { key: 'Escape', keyCode: 229 })
+      expect(screen.queryByText(STRINGS.paused)).not.toBeInTheDocument()
+    })
+
+    it('pauses when the page is hidden and does not resume when shown', () => {
+      render(<Drill setIndex={0} mode="timed" order={order} onFinish={() => {}} onBack={() => {}} />)
+      typeCommitted(order[0])
+      setVisibility('hidden')
+      expect(screen.getByText(STRINGS.paused)).toBeInTheDocument()
+      setVisibility('visible')
+      expect(screen.getByText(STRINGS.paused)).toBeInTheDocument()
+    })
+
+    it('does not pause on hide before the clock starts', () => {
+      render(<Drill setIndex={0} mode="timed" order={order} onFinish={() => {}} onBack={() => {}} />)
+      setVisibility('hidden')
+      expect(screen.queryByText(STRINGS.paused)).not.toBeInTheDocument()
+      setVisibility('visible')
+    })
+  })
 })

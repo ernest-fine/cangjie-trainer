@@ -2,16 +2,16 @@ import { useEffect, useState } from 'react'
 import { formatTime } from '../lib/scoring'
 
 interface ClockProps {
-  startedAt: number | null
-  endedAt: number | null
-  now?: () => number
+  /** Elapsed milliseconds, excluding pauses. */
+  elapsedMs: () => number
+  /** Tick while true; freeze the displayed value while false. */
+  running: boolean
 }
 
 const TICK_MS = 100
 
-export function Clock({ startedAt, endedAt, now = () => performance.now() }: ClockProps) {
+export function Clock({ elapsedMs, running }: ClockProps) {
   const [, setTick] = useState(0)
-  const running = startedAt !== null && endedAt === null
 
   useEffect(() => {
     if (!running) return
@@ -19,11 +19,9 @@ export function Clock({ startedAt, endedAt, now = () => performance.now() }: Clo
     return () => clearInterval(id)
   }, [running])
 
-  const elapsed = startedAt === null ? 0 : (endedAt ?? now()) - startedAt
-
   return (
     <span style={{ fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums' }} aria-live="off">
-      {formatTime(elapsed)}
+      {formatTime(elapsedMs())}
     </span>
   )
 }
