@@ -26,7 +26,7 @@ When the report lists a missed character, the learner should see how to type it:
 
 `src/lib/cangjie.ts`:
 
-- `RADICALS: Readonly<Record<string, string>>` mapping the 24 Cangjie keys to radicals: A 日, B 月, C 金, D 木, E 水, F 火, G 土, H 竹, I 戈, J 十, K 大, L 中, M 一, N 弓, O 人, P 心, Q 手, R 口, S 尸, T 廿, U 山, V 女, W 田, X 難, Y 卜, Z 重.
+- `RADICALS: Readonly<Record<string, string>>` mapping the 26 Cangjie keys to radicals: A 日, B 月, C 金, D 木, E 水, F 火, G 土, H 竹, I 戈, J 十, K 大, L 中, M 一, N 弓, O 人, P 心, Q 手, R 口, S 尸, T 廿, U 山, V 女, W 田, X 難, Y 卜, Z 重.
 - `radicalsFor(code: string): string` maps each letter to its radical and joins them: `radicalsFor('ROWR') === '口人田口'`. An unknown letter throws, since the build script guarantees the alphabet.
 
 ### Report
@@ -51,7 +51,7 @@ No new user-facing strings.
 ## Testing
 
 - `src/data/cangjie.test.ts`: every character in every set has an entry; every code matches `/^[A-Z]{1,5}$/`; spot checks 嗰 → ROWR, 草 → TAJ, 係 → OHVF.
-- `src/lib/cangjie.test.ts`: `RADICALS` has exactly 24 keys; `radicalsFor('ROWR')` is 口人田口; `radicalsFor('X')` is 難; an unknown letter throws.
+- `src/lib/cangjie.test.ts`: `RADICALS` has exactly 26 keys; `radicalsFor('ROWR')` is 口人田口; `radicalsFor('X')` is 難; an unknown letter throws.
 - `src/components/Report.test.tsx`: with `missed: ['嗰']` the report shows 口人田口 and ROWR inside the missed list.
 
 ## Out of scope
