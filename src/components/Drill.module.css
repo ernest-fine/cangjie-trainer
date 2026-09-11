@@ -20,6 +20,7 @@
   align-items: baseline;
   gap: 0.6rem;
   margin-right: auto;
+  min-width: 0;
 }
 
 .setName {

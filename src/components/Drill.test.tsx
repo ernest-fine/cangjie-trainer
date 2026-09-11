@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { STRINGS } from '../lib/strings'
@@ -31,6 +31,10 @@ describe('Drill', () => {
     expect(result.missed).toEqual([order[0]])
     expect(result.order).toEqual(order)
     expect(result.elapsedMs).toBeGreaterThanOrEqual(0)
+    expect(result.kind).toBe('set')
+    expect(result.durationMs).toBe(0)
+    expect(result.typedCount).toBe(100)
+    expect(result.correctCount).toBe(99)
   })
 
   it('does not end the run when the IME commits raw code letters for the last character', () => {
@@ -221,6 +225,91 @@ describe('Drill', () => {
       setVisibility('hidden')
       expect(screen.queryByText(STRINGS.paused)).not.toBeInTheDocument()
       setVisibility('visible')
+    })
+  })
+
+  describe('attack', () => {
+    const attackOrder = Array.from({ length: 600 }, (_, i) => order[i % 100])
+
+    afterEach(() => vi.useRealTimers())
+
+    function renderAttack(onFinish = vi.fn(), now = () => 0) {
+      render(
+        <Drill setIndex={-1} mode="attack" order={attackOrder} durationMs={60_000} onFinish={onFinish} onBack={() => {}} now={now} />,
+      )
+      return onFinish
+    }
+
+    it('shows the attack title and a countdown', () => {
+      renderAttack()
+      expect(screen.getByText(STRINGS.attackTitle(1))).toBeInTheDocument()
+      expect(screen.getByRole('timer', { name: STRINGS.remaining })).toHaveTextContent('1:00.0')
+    })
+
+    it('shows a three-row window that follows the cursor', () => {
+      renderAttack()
+      const glyphs = () => [...document.querySelectorAll('[data-state]')].map((el) => el.textContent)
+      expect(glyphs()).toHaveLength(60)
+      expect(glyphs()[0]).toBe(attackOrder[0])
+      typeCommitted(attackOrder.slice(0, 40).join(''))
+      expect(glyphs()[0]).toBe(attackOrder[20])
+      expect(glyphs()).toHaveLength(60)
+      expect(document.querySelectorAll('[data-state="current"]')).toHaveLength(1)
+    })
+
+    it('ends when the countdown reaches zero and reports the counts', () => {
+      vi.useFakeTimers()
+      let t = 0
+      const onFinish = renderAttack(vi.fn(), () => t)
+      typeCommitted(attackOrder.slice(0, 10).join(''))
+      typeCommitted(attackOrder.slice(0, 10).join('') + '錯' + attackOrder.slice(11, 30).join(''))
+      t = 59_000
+      act(() => {
+        vi.advanceTimersByTime(100)
+      })
+      expect(onFinish).not.toHaveBeenCalled()
+      t = 60_050
+      act(() => {
+        vi.advanceTimersByTime(100)
+      })
+      expect(onFinish).toHaveBeenCalledTimes(1)
+      const result = onFinish.mock.calls[0][0]
+      expect(result.kind).toBe('attack')
+      expect(result.setIndex).toBe(-1)
+      expect(result.durationMs).toBe(60_000)
+      expect(result.elapsedMs).toBe(60_000)
+      expect(result.typedCount).toBe(30)
+      expect(result.wrongCount).toBe(1)
+      expect(result.correctCount).toBe(29)
+      expect(result.missed).toEqual([attackOrder[10]])
+      expect(screen.getByRole('textbox')).toBeDisabled()
+    })
+
+    it('a pause extends the run', () => {
+      vi.useFakeTimers()
+      let t = 0
+      const onFinish = renderAttack(vi.fn(), () => t)
+      typeCommitted(attackOrder[0])
+      t = 10_000
+      fireEvent.click(screen.getByRole('button', { name: STRINGS.pause }))
+      t = 50_000
+      fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: STRINGS.resume }))
+      t = 65_000
+      act(() => {
+        vi.advanceTimersByTime(100)
+      })
+      expect(onFinish).not.toHaveBeenCalled()
+      t = 100_100
+      act(() => {
+        vi.advanceTimersByTime(100)
+      })
+      expect(onFinish).toHaveBeenCalledTimes(1)
+    })
+
+    it('hides the set name and the done mark', () => {
+      renderAttack()
+      expect(screen.queryByText(STRINGS.setName(0))).not.toBeInTheDocument()
+      expect(screen.queryByText(STRINGS.done)).not.toBeInTheDocument()
     })
   })
 })

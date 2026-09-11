@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useDrill } from '../hooks/useDrill'
+import { ROW_LENGTH, WINDOW_ROWS, windowStart } from '../lib/attack'
 import { missedCharacters } from '../lib/scoring'
 import { STRINGS } from '../lib/strings'
 import type { Mode, RunResult } from '../lib/types'
@@ -13,6 +14,8 @@ export interface DrillProps {
   setIndex: number
   mode: Mode
   order: string[]
+  /** Required when mode is 'attack'. */
+  durationMs?: number
   onFinish(result: RunResult): void
   onBack(): void
   now?: () => number
@@ -21,15 +24,18 @@ export interface DrillProps {
 const IME_PROCESSING_KEY_CODE = 229
 /** Escape pressed this soon after a composition ended was cancelling that composition. */
 const COMPOSITION_END_GRACE_MS = 100
+const EXPIRE_TICK_MS = 100
 
-export function Drill({ setIndex, mode, order, onFinish, onBack, now }: DrillProps) {
-  const drill = useDrill(order, { now })
+export function Drill({ setIndex, mode, order, durationMs, onFinish, onBack, now }: DrillProps) {
+  const attack = mode === 'attack'
+  const drill = useDrill(order, { now, limitMs: attack ? durationMs : undefined })
   const {
     isPaused,
     isRunning,
     isDone,
     startedAt,
     runId,
+    typed,
     states,
     pause,
     resume,
@@ -37,6 +43,8 @@ export function Drill({ setIndex, mode, order, onFinish, onBack, now }: DrillPro
     restart,
     onInput,
     elapsedMs,
+    remainingMs,
+    expire,
     wrongPositions,
     order: drillOrder,
   } = drill
@@ -45,7 +53,7 @@ export function Drill({ setIndex, mode, order, onFinish, onBack, now }: DrillPro
   const reported = useRef(false)
   const composing = useRef(false)
   const compositionEndedAt = useRef(-Infinity)
-  const timed = mode === 'timed'
+  const clocked = mode === 'timed' || attack
   const canPause = startedAt !== null && !isDone
 
   useEffect(() => {
@@ -53,16 +61,28 @@ export function Drill({ setIndex, mode, order, onFinish, onBack, now }: DrillPro
   }, [runId])
 
   useEffect(() => {
-    if (!timed || !isDone || reported.current) return
+    if (!clocked || !isDone || reported.current) return
     reported.current = true
+    const typedCount = [...typed].length
     onFinish({
+      kind: attack ? 'attack' : 'set',
       setIndex,
+      durationMs: attack ? (durationMs ?? 0) : 0,
       order: drillOrder,
       elapsedMs: elapsedMs(),
+      typedCount,
+      correctCount: typedCount - wrongPositions.length,
       wrongCount: wrongPositions.length,
       missed: missedCharacters(drillOrder, wrongPositions),
     })
-  }, [timed, isDone, drillOrder, elapsedMs, wrongPositions, onFinish, setIndex])
+  }, [clocked, attack, durationMs, isDone, typed, drillOrder, elapsedMs, wrongPositions, onFinish, setIndex])
+
+  // Time attack: end the run when the countdown reaches zero.
+  useEffect(() => {
+    if (!attack || !isRunning) return
+    const id = setInterval(expire, EXPIRE_TICK_MS)
+    return () => clearInterval(id)
+  }, [attack, isRunning, expire])
 
   // Pausing disables the input, so move focus to the overlay's resume button;
   // resuming hands it back to the input.
@@ -74,7 +94,7 @@ export function Drill({ setIndex, mode, order, onFinish, onBack, now }: DrillPro
   // Track IME composition at the document level so the Escape guard below
   // does not depend on how a browser orders compositionend and keydown.
   useEffect(() => {
-    if (!timed) return
+    if (!clocked) return
     const onStart = () => {
       composing.current = true
     }
@@ -88,11 +108,11 @@ export function Drill({ setIndex, mode, order, onFinish, onBack, now }: DrillPro
       document.removeEventListener('compositionstart', onStart)
       document.removeEventListener('compositionend', onEnd)
     }
-  }, [timed])
+  }, [clocked])
 
   // Escape toggles pause, except when it is cancelling an IME composition.
   useEffect(() => {
-    if (!timed) return
+    if (!clocked) return
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
       const cancellingComposition =
@@ -111,33 +131,51 @@ export function Drill({ setIndex, mode, order, onFinish, onBack, now }: DrillPro
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
-  }, [timed, isPaused, canPause, pause, resume])
+  }, [clocked, isPaused, canPause, pause, resume])
 
   // Auto-pause when the page is hidden. Never auto-resume.
   useEffect(() => {
-    if (!timed) return
+    if (!clocked) return
     const onVisibility = () => {
       if (document.visibilityState === 'hidden') pause()
     }
     document.addEventListener('visibilitychange', onVisibility)
     return () => document.removeEventListener('visibilitychange', onVisibility)
-  }, [timed, pause])
+  }, [clocked, pause])
 
   const focusInput = () => inputRef.current?.focus()
+
+  const handleInput = (value: string, isComposing: boolean) => {
+    onInput(value, isComposing)
+    if (attack) expire()
+  }
+
+  // Attack mode shows a rolling three-row window; sets show everything.
+  const start = attack ? windowStart([...typed].length) : 0
+  const end = attack ? start + ROW_LENGTH * WINDOW_ROWS : drillOrder.length
+  const visibleOrder = drillOrder.slice(start, end)
+  const visibleStates = states.slice(start, end)
+  const minutes = Math.round((durationMs ?? 0) / 60_000)
 
   return (
     <main className={styles.screen} onClick={focusInput}>
       <header className={styles.bar}>
         <div className={styles.title}>
-          <span className={styles.setName}>{STRINGS.setName(setIndex + 1)}</span>
-          <span className={styles.mode}>{timed ? STRINGS.timed : STRINGS.free}</span>
+          {attack ? (
+            <span className={styles.setName}>{STRINGS.attackTitle(minutes)}</span>
+          ) : (
+            <>
+              <span className={styles.setName}>{STRINGS.setName(setIndex + 1)}</span>
+              <span className={styles.mode}>{mode === 'timed' ? STRINGS.timed : STRINGS.free}</span>
+            </>
+          )}
         </div>
-        {timed && (
-          <span className={styles.clock}>
-            <Clock elapsedMs={elapsedMs} running={isRunning} />
+        {clocked && (
+          <span className={styles.clock} role="timer" aria-label={attack ? STRINGS.remaining : STRINGS.time}>
+            <Clock elapsedMs={attack ? remainingMs : elapsedMs} running={isRunning} />
           </span>
         )}
-        {timed && (
+        {clocked && (
           <Button variant="secondary" onClick={isPaused ? resume : pause} disabled={!canPause}>
             {isPaused ? STRINGS.resume : STRINGS.pause}
           </Button>
@@ -155,7 +193,7 @@ export function Drill({ setIndex, mode, order, onFinish, onBack, now }: DrillPro
 
       <div className={styles.gridArea}>
         {/* The grid keeps its layout box while paused so the page does not jump. */}
-        <CharacterGrid order={drillOrder} states={states} concealed={isPaused} />
+        <CharacterGrid order={visibleOrder} states={visibleStates} concealed={isPaused} />
         {isPaused && (
           <div className={styles.pausedOverlay} role="dialog" aria-labelledby="paused-label">
             <p id="paused-label" className={styles.pausedLabel}>
@@ -170,7 +208,7 @@ export function Drill({ setIndex, mode, order, onFinish, onBack, now }: DrillPro
 
       <p className={styles.hint}>{STRINGS.hint}</p>
 
-      <DrillInput key={runId} onValue={onInput} inputRef={inputRef} disabled={isDone || isPaused} />
+      <DrillInput key={runId} onValue={handleInput} inputRef={inputRef} disabled={isDone || isPaused} />
 
       {mode === 'free' && isDone && <p className={styles.done}>{STRINGS.done}</p>}
     </main>
