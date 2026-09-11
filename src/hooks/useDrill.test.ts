@@ -104,4 +104,87 @@ describe('useDrill', () => {
     expect(result.current.order).not.toEqual(order)
     expect([...result.current.order].sort()).toEqual([...order].sort())
   })
+
+  describe('pause', () => {
+    it('excludes paused time from elapsedMs', () => {
+      const clock = fakeClock(0)
+      const { result } = renderHook(() => useDrill(order, { now: clock.now }))
+      act(() => result.current.onInput(order[0], false))
+      clock.advance(1000)
+      act(() => result.current.pause())
+      expect(result.current.isPaused).toBe(true)
+      expect(result.current.isRunning).toBe(false)
+      clock.advance(5000)
+      expect(result.current.elapsedMs()).toBe(1000)
+      act(() => result.current.resume())
+      expect(result.current.isPaused).toBe(false)
+      expect(result.current.isRunning).toBe(true)
+      clock.advance(2000)
+      expect(result.current.elapsedMs()).toBe(3000)
+    })
+
+    it('reports the pause-excluded time when the run ends', () => {
+      const clock = fakeClock(0)
+      const { result } = renderHook(() => useDrill(order, { now: clock.now }))
+      act(() => result.current.onInput(order[0], false))
+      clock.advance(1000)
+      act(() => result.current.pause())
+      clock.advance(9000)
+      act(() => result.current.resume())
+      clock.advance(1000)
+      act(() => result.current.onInput(order.join(''), false))
+      expect(result.current.isDone).toBe(true)
+      expect(result.current.elapsedMs()).toBe(2000)
+    })
+
+    it('ignores pause before the clock starts', () => {
+      const { result } = renderHook(() => useDrill(order))
+      act(() => result.current.pause())
+      expect(result.current.isPaused).toBe(false)
+      expect(result.current.elapsedMs()).toBe(0)
+    })
+
+    it('ignores a second pause and a resume when not paused', () => {
+      const clock = fakeClock(0)
+      const { result } = renderHook(() => useDrill(order, { now: clock.now }))
+      act(() => result.current.onInput(order[0], false))
+      act(() => result.current.resume())
+      expect(result.current.isPaused).toBe(false)
+      clock.advance(100)
+      act(() => result.current.pause())
+      const firstPausedAt = result.current.pausedAt
+      clock.advance(100)
+      act(() => result.current.pause())
+      expect(result.current.pausedAt).toBe(firstPausedAt)
+    })
+
+    it('ignores input while paused', () => {
+      const { result } = renderHook(() => useDrill(order))
+      act(() => result.current.onInput(order[0], false))
+      act(() => result.current.pause())
+      act(() => result.current.onInput(order[0] + order[1], false))
+      expect([...result.current.typed]).toHaveLength(1)
+    })
+
+    it('restart and scramble clear the pause', () => {
+      const { result } = renderHook(() => useDrill(order))
+      act(() => result.current.onInput(order[0], false))
+      act(() => result.current.pause())
+      act(() => result.current.restart())
+      expect(result.current.isPaused).toBe(false)
+      expect(result.current.pausedMs).toBe(0)
+      act(() => result.current.onInput(order[0], false))
+      act(() => result.current.pause())
+      act(() => result.current.scramble())
+      expect(result.current.isPaused).toBe(false)
+      expect(result.current.pausedMs).toBe(0)
+    })
+
+    it('is not running before start or after the end', () => {
+      const { result } = renderHook(() => useDrill(order))
+      expect(result.current.isRunning).toBe(false)
+      act(() => result.current.onInput(order.join(''), false))
+      expect(result.current.isRunning).toBe(false)
+    })
+  })
 })
