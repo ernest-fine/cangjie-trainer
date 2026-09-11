@@ -15,7 +15,7 @@ export interface ReportProps {
 
 export function Report({ result, isNewBest, previousBest, onRetry, onRetryScrambled, onBack }: ReportProps) {
   const cpm = charsPerMinute(result.elapsedMs)
-  const acc = Math.round(accuracy(result.wrongTally) * 100)
+  const acc = Math.round(accuracy(result.wrongCount) * 100)
 
   let recordText: string
   let recordClass = styles.statValue

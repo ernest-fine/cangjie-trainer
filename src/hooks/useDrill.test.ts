@@ -35,16 +35,22 @@ describe('useDrill', () => {
     expect(result.current.startedAt).toBe(5000)
   })
 
-  it('tracks wrong characters and never decrements the tally', () => {
+  it('reports wrong positions and forgives them once fixed', () => {
     const { result } = renderHook(() => useDrill(order))
     act(() => result.current.onInput('錯', false))
-    expect(result.current.wrongTally).toBe(1)
+    expect(result.current.wrongPositions).toEqual([0])
     expect(result.current.states[0]).toBe('wrong')
     act(() => result.current.onInput('', false))
     act(() => result.current.onInput(order[0], false))
-    expect(result.current.wrongTally).toBe(1)
-    expect(result.current.wrongPositions).toEqual([0])
+    expect(result.current.wrongPositions).toEqual([])
     expect(result.current.states[0]).toBe('correct')
+  })
+
+  it('keeps unfixed wrong positions at the end of the run', () => {
+    const { result } = renderHook(() => useDrill(order))
+    act(() => result.current.onInput('錯' + order.slice(1).join(''), false))
+    expect(result.current.isDone).toBe(true)
+    expect(result.current.wrongPositions).toEqual([0])
   })
 
   it('ignores non-Han characters the IME commits for an invalid code', () => {
@@ -53,11 +59,11 @@ describe('useDrill', () => {
     act(() => result.current.onInput(almostDone, false))
     act(() => result.current.onInput(almostDone + 'mgmmju', false))
     expect([...result.current.typed]).toHaveLength(99)
-    expect(result.current.wrongTally).toBe(0)
+    expect(result.current.wrongPositions).toEqual([])
     expect(result.current.isDone).toBe(false)
     act(() => result.current.onInput(almostDone + 'mgmmju' + order[99], false))
     expect(result.current.isDone).toBe(true)
-    expect(result.current.wrongTally).toBe(0)
+    expect(result.current.wrongPositions).toEqual([])
   })
 
   it('caps typed input at the set length', () => {
@@ -89,7 +95,7 @@ describe('useDrill', () => {
     const before = result.current.runId
     act(() => result.current.restart())
     expect(result.current.typed).toBe('')
-    expect(result.current.wrongTally).toBe(0)
+    expect(result.current.wrongPositions).toEqual([])
     expect(result.current.startedAt).toBeNull()
     expect(result.current.order).toEqual(order)
     expect(result.current.runId).toBe(before + 1)
@@ -100,7 +106,7 @@ describe('useDrill', () => {
     act(() => result.current.onInput('錯', false))
     act(() => result.current.scramble())
     expect(result.current.typed).toBe('')
-    expect(result.current.wrongTally).toBe(0)
+    expect(result.current.wrongPositions).toEqual([])
     expect(result.current.order).not.toEqual(order)
     expect([...result.current.order].sort()).toEqual([...order].sort())
   })

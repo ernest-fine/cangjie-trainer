@@ -27,7 +27,7 @@ describe('Drill', () => {
     expect(onFinish).toHaveBeenCalledTimes(1)
     const result = onFinish.mock.calls[0][0]
     expect(result.setIndex).toBe(0)
-    expect(result.wrongTally).toBe(1)
+    expect(result.wrongCount).toBe(1)
     expect(result.missed).toEqual([order[0]])
     expect(result.order).toEqual(order)
     expect(result.elapsedMs).toBeGreaterThanOrEqual(0)
@@ -43,7 +43,7 @@ describe('Drill', () => {
     expect(onFinish).not.toHaveBeenCalled()
     typeCommitted(almostDone + order[99])
     expect(onFinish).toHaveBeenCalledTimes(1)
-    expect(onFinish.mock.calls[0][0].wrongTally).toBe(0)
+    expect(onFinish.mock.calls[0][0].wrongCount).toBe(0)
     expect(onFinish.mock.calls[0][0].missed).toEqual([])
   })
 
@@ -74,7 +74,7 @@ describe('Drill', () => {
     expect(onBack).toHaveBeenCalled()
   })
 
-  it('accumulates time and mistakes across several commits', () => {
+  it('accumulates time across several commits and forgives a corrected mistake', () => {
     let t = 1000
     const onFinish = vi.fn()
     render(<Drill setIndex={0} mode="timed" order={order} onFinish={onFinish} onBack={() => {}} now={() => t} />)
@@ -88,8 +88,8 @@ describe('Drill', () => {
     expect(onFinish).toHaveBeenCalledTimes(1)
     const result = onFinish.mock.calls[0][0]
     expect(result.elapsedMs).toBe(5000)
-    expect(result.wrongTally).toBe(1)
-    expect(result.missed).toEqual([order[10]])
+    expect(result.wrongCount).toBe(0)
+    expect(result.missed).toEqual([])
   })
 
   describe('pause', () => {

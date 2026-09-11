@@ -21,21 +21,13 @@ export function positionStates(target: string[], typed: string): PositionState[]
   })
 }
 
-/**
- * Positions that became wrong between two committed input values.
- * Only the changed suffix is inspected, so a backspace adds nothing and a
- * fix adds nothing. Retyping a wrong character wrong again counts again.
- */
-export function newlyWrongPositions(prevTyped: string, typed: string, target: string[]): number[] {
-  const prev = [...prevTyped]
-  const next = [...typed]
-  let common = 0
-  while (common < prev.length && common < next.length && prev[common] === next[common]) common++
-  const wrong: number[] = []
-  for (let i = common; i < next.length && i < target.length; i++) {
-    if (next[i] !== target[i]) wrong.push(i)
-  }
-  return wrong
+/** Indices whose typed character differs from the target. */
+export function wrongPositions(states: PositionState[]): number[] {
+  const out: number[] = []
+  states.forEach((state, i) => {
+    if (state === 'wrong') out.push(i)
+  })
+  return out
 }
 
 export function charsPerMinute(elapsedMs: number, count = DEFAULT_TOTAL): number {
@@ -43,8 +35,8 @@ export function charsPerMinute(elapsedMs: number, count = DEFAULT_TOTAL): number
   return Math.round(count / (elapsedMs / 60_000))
 }
 
-export function accuracy(wrongTally: number, total = DEFAULT_TOTAL): number {
-  return Math.max(0, total - wrongTally) / total
+export function accuracy(wrongCount: number, total = DEFAULT_TOTAL): number {
+  return Math.max(0, total - wrongCount) / total
 }
 
 // Fisher-Yates shuffle. The `rng` should return a number in [0, 1); returning exactly 1 is tolerated.

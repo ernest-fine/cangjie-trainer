@@ -37,7 +37,6 @@ export function Drill({ setIndex, mode, order, onFinish, onBack, now }: DrillPro
     restart,
     onInput,
     elapsedMs,
-    wrongTally,
     wrongPositions,
     order: drillOrder,
   } = drill
@@ -60,10 +59,10 @@ export function Drill({ setIndex, mode, order, onFinish, onBack, now }: DrillPro
       setIndex,
       order: drillOrder,
       elapsedMs: elapsedMs(),
-      wrongTally,
+      wrongCount: wrongPositions.length,
       missed: missedCharacters(drillOrder, wrongPositions),
     })
-  }, [timed, isDone, drillOrder, elapsedMs, wrongTally, wrongPositions, onFinish, setIndex])
+  }, [timed, isDone, drillOrder, elapsedMs, wrongPositions, onFinish, setIndex])
 
   // Pausing disables the input, so move focus to the overlay's resume button;
   // resuming hands it back to the input.

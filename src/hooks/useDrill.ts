@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import { hanCharacters, newlyWrongPositions, positionStates, shuffle } from '../lib/scoring'
+import { hanCharacters, positionStates, shuffle, wrongPositions as wrongPositionsOf } from '../lib/scoring'
 import type { PositionState } from '../lib/types'
 
 export interface UseDrillOptions {
@@ -10,8 +10,6 @@ export interface UseDrillOptions {
 export interface DrillState {
   order: string[]
   typed: string
-  wrongTally: number
-  wrongPositions: number[]
   startedAt: number | null
   endedAt: number | null
   /** Timestamp of the current pause, or null when not paused. */
@@ -23,6 +21,8 @@ export interface DrillState {
 
 export interface Drill extends DrillState {
   states: PositionState[]
+  /** Indices currently wrong; corrected mistakes drop out. */
+  wrongPositions: number[]
   isDone: boolean
   isPaused: boolean
   /** Clock started, not done, not paused. */
@@ -40,8 +40,6 @@ function freshState(order: string[], runId: number): DrillState {
   return {
     order,
     typed: '',
-    wrongTally: 0,
-    wrongPositions: [],
     startedAt: null,
     endedAt: null,
     pausedAt: null,
@@ -62,14 +60,11 @@ export function useDrill(initialOrder: string[], options: UseDrillOptions = {}):
       setState((prev) => {
         if (prev.endedAt !== null || prev.pausedAt !== null) return prev
         const capped = [...hanCharacters(value)].slice(0, prev.order.length).join('')
-        const wrong = newlyWrongPositions(prev.typed, capped, prev.order)
         const startedAt = prev.startedAt ?? (capped.length > 0 ? t : null)
         const done = [...capped].length === prev.order.length
         return {
           ...prev,
           typed: capped,
-          wrongTally: prev.wrongTally + wrong.length,
-          wrongPositions: wrong.length ? [...prev.wrongPositions, ...wrong] : prev.wrongPositions,
           startedAt,
           endedAt: done ? t : null,
         }
@@ -111,10 +106,12 @@ export function useDrill(initialOrder: string[], options: UseDrillOptions = {}):
   }, [state.startedAt, state.endedAt, state.pausedAt, state.pausedMs, now])
 
   const states = useMemo(() => positionStates(state.order, state.typed), [state.order, state.typed])
+  const wrongPositions = useMemo(() => wrongPositionsOf(states), [states])
 
   return {
     ...state,
     states,
+    wrongPositions,
     isDone: state.endedAt !== null,
     isPaused: state.pausedAt !== null,
     isRunning: state.startedAt !== null && state.endedAt === null && state.pausedAt === null,

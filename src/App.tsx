@@ -25,7 +25,7 @@ export default function App() {
   const finishRun = useCallback(
     (result: RunResult) => {
       const previousBest = bests[result.setIndex]
-      const acc = accuracy(result.wrongTally)
+      const acc = accuracy(result.wrongCount)
       const isNewBest = qualifiesAsBest(previousBest, { elapsedMs: result.elapsedMs, accuracy: acc })
       if (isNewBest) {
         const record: BestRecord = { bestMs: result.elapsedMs, accuracy: acc, recordedAt: new Date().toISOString() }

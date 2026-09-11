@@ -9,7 +9,7 @@ const result: RunResult = {
   setIndex: 0,
   order: [...'的一是'],
   elapsedMs: 90_000,
-  wrongTally: 5,
+  wrongCount: 5,
   missed: ['的', '是'],
 }
 
@@ -56,7 +56,7 @@ describe('Report', () => {
 
   it('shows a no-mistakes message when nothing was missed', () => {
     render(
-      <Report result={{ ...result, wrongTally: 0, missed: [] }} isNewBest={false} previousBest={undefined} onRetry={noop} onRetryScrambled={noop} onBack={noop} />,
+      <Report result={{ ...result, wrongCount: 0, missed: [] }} isNewBest={false} previousBest={undefined} onRetry={noop} onRetryScrambled={noop} onBack={noop} />,
     )
     expect(screen.getByText(STRINGS.noMistakes)).toBeInTheDocument()
   })

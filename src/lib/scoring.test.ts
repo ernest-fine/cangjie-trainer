@@ -5,9 +5,9 @@ import {
   charsPerMinute,
   formatTime,
   missedCharacters,
-  newlyWrongPositions,
   positionStates,
   shuffle,
+  wrongPositions,
 } from './scoring'
 
 const target = [...'的一是不了']
@@ -30,33 +30,13 @@ describe('positionStates', () => {
   })
 })
 
-describe('newlyWrongPositions', () => {
-  it('reports a newly typed wrong character', () => {
-    expect(newlyWrongPositions('的', '的X', target)).toEqual([1])
+describe('wrongPositions', () => {
+  it('returns the indices marked wrong', () => {
+    expect(wrongPositions(['correct', 'wrong', 'current', 'pending', 'wrong'])).toEqual([1, 4])
   })
 
-  it('reports nothing for a correct character', () => {
-    expect(newlyWrongPositions('的', '的一', target)).toEqual([])
-  })
-
-  it('reports nothing on backspace', () => {
-    expect(newlyWrongPositions('的X', '的', target)).toEqual([])
-  })
-
-  it('reports again when a wrong character is retyped wrong', () => {
-    expect(newlyWrongPositions('的', '的Y', target)).toEqual([1])
-  })
-
-  it('reports nothing when a wrong character is fixed', () => {
-    expect(newlyWrongPositions('的X', '的一', target)).toEqual([])
-  })
-
-  it('handles several characters committed at once', () => {
-    expect(newlyWrongPositions('', '的AB', target)).toEqual([1, 2])
-  })
-
-  it('ignores positions beyond the target', () => {
-    expect(newlyWrongPositions('的一是不', '的一是不了Z', target)).toEqual([])
+  it('is empty when nothing is wrong', () => {
+    expect(wrongPositions(['correct', 'correct', 'current'])).toEqual([])
   })
 })
 

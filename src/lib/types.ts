@@ -6,7 +6,8 @@ export interface RunResult {
   setIndex: number
   order: string[]
   elapsedMs: number
-  wrongTally: number
+  /** Positions still wrong when the run ended. */
+  wrongCount: number
   missed: string[]
 }
 
