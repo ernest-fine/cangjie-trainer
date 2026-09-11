@@ -36,6 +36,8 @@ Standard written Chinese, Hong Kong usage. Not colloquial Cantonese. The exact s
 | Report missed label | Missed | 錯字 |
 | Report no mistakes | No mistakes | 全部正確 |
 | Report buttons | Retry / Retry scrambled / Back to sets | 再試一次 / 打亂再試 / 返回字組 |
+| Drill pause button (see the pause spec) | Pause / Resume | 暫停 / 繼續 |
+| Drill paused overlay (see the pause spec) | Paused | 已暫停 |
 
 Numbers are inserted with the same spacing as above: a space on each side of an Arabic numeral inside Chinese text (第 1 組, 第 1 至 100 字), no space before `%`.
 
