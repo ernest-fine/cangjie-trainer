@@ -36,6 +36,7 @@ export function charsPerMinute(elapsedMs: number, count = DEFAULT_TOTAL): number
 }
 
 export function accuracy(wrongCount: number, total = DEFAULT_TOTAL): number {
+  if (total <= 0) return 0
   return Math.max(0, total - wrongCount) / total
 }
 

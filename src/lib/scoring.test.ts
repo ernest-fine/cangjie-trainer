@@ -66,6 +66,14 @@ describe('accuracy', () => {
   it('floors at 0', () => {
     expect(accuracy(150)).toBe(0)
   })
+
+  it('is 0 when nothing was typed', () => {
+    expect(accuracy(0, 0)).toBe(0)
+  })
+
+  it('uses the given total', () => {
+    expect(accuracy(3, 140)).toBeCloseTo(137 / 140)
+  })
 })
 
 describe('shuffle', () => {

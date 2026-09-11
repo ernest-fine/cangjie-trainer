@@ -34,4 +34,11 @@ export const STRINGS = Object.freeze({
   retry: '再試一次',
   retryScrambled: '打亂後再試',
   backToSets: '返回選單',
+
+  attack: '限時挑戰',
+  minutes: (n: number) => `${n} 分鐘`,
+  attackTitle: (n: number) => `限時挑戰 · ${n} 分鐘`,
+  remaining: '剩餘',
+  correctCount: '打對',
+  charsUnit: (n: number) => `${n} 字`,
 })

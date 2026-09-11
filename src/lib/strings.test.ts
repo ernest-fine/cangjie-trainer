@@ -12,4 +12,10 @@ describe('STRINGS', () => {
   it('is frozen', () => {
     expect(Object.isFrozen(STRINGS)).toBe(true)
   })
+
+  it('formats the time attack strings', () => {
+    expect(STRINGS.minutes(2)).toBe('2 分鐘')
+    expect(STRINGS.attackTitle(3)).toBe('限時挑戰 · 3 分鐘')
+    expect(STRINGS.charsUnit(137)).toBe('137 字')
+  })
 })
